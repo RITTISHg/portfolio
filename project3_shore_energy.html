@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Shore Energy — Rittish G</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#020810;--surface:#050f1e;--card:#071428;--accent:#10b981;--accent2:#00e5ff;--accent3:#7c3aed;--text:#e2f0ff;--muted:#5a7fa0;--border:rgba(16,185,129,0.15);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;cursor:none;}
+.cursor{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 12px var(--accent),0 0 30px rgba(16,185,129,.4);}
+.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(16,185,129,.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .2s,height .2s;}
+#canvas-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:0.4;}
+.noise{position:fixed;inset:0;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;opacity:.5;}
+.wrapper{position:relative;z-index:2;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 48px;background:rgba(2,8,16,.85);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:.2em;color:var(--accent);text-decoration:none;text-shadow:0 0 20px rgba(16,185,129,.6);}
+.nav-back{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--muted);text-decoration:none;letter-spacing:.12em;display:flex;align-items:center;gap:8px;transition:color .2s;cursor:none;}
+.nav-back:hover{color:var(--accent);}
+.scroll-progress{position:fixed;top:0;left:0;height:2px;background:linear-gradient(to right,var(--accent3),var(--accent));z-index:200;width:0%;box-shadow:0 0 8px var(--accent);}
+.container{max-width:1100px;margin:0 auto;padding:0 32px;}
+
+.proj-hero{min-height:100vh;display:flex;align-items:center;padding-top:80px;}
+.proj-hero-inner{width:100%;max-width:1100px;margin:0 auto;padding:0 32px;}
+.proj-tag{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--accent);letter-spacing:.25em;text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:18px;opacity:0;animation:fadeUp .8s .2s forwards;}
+.proj-tag::before{content:'';width:30px;height:1px;background:var(--accent);}
+.proj-num{font-family:'Orbitron',sans-serif;font-size:.75rem;color:var(--muted);letter-spacing:.3em;margin-bottom:12px;opacity:0;animation:fadeUp .8s .15s forwards;}
+h1.proj-title{font-family:'Orbitron',sans-serif;font-size:clamp(2.4rem,5vw,4.2rem);font-weight:900;letter-spacing:.05em;line-height:1.05;opacity:0;animation:fadeUp .8s .3s forwards;}
+h1.proj-title .accent{color:var(--accent);text-shadow:0 0 30px rgba(16,185,129,.5);}
+.proj-subtitle{font-family:'Space Mono',monospace;font-size:.8rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:14px;opacity:0;animation:fadeUp .8s .45s forwards;}
+.proj-tagline{font-size:1.15rem;line-height:1.8;color:#a0c4d8;max-width:600px;margin-top:22px;opacity:0;animation:fadeUp .8s .6s forwards;}
+.proj-meta-row{display:flex;flex-wrap:wrap;gap:24px;margin-top:36px;opacity:0;animation:fadeUp .8s .75s forwards;}
+.meta-chip{display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--card);border:1px solid var(--border);}
+.meta-chip-label{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;display:block;margin-bottom:2px;}
+.meta-chip-val{font-size:.9rem;font-weight:700;color:var(--text);}
+.meta-chip-icon{font-size:1.3rem;}
+.proj-ctas{display:flex;gap:14px;margin-top:40px;opacity:0;animation:fadeUp .8s .9s forwards;}
+
+/* ENERGY METER */
+.energy-viz{padding:70px 0;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:60px 0;}
+.energy-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;}
+.energy-card{background:var(--card);border:1px solid var(--border);padding:28px;text-align:center;position:relative;overflow:hidden;}
+.energy-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(to right,transparent,var(--accent),transparent);}
+.e-label{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;}
+.e-gauge{width:100px;height:50px;margin:0 auto 16px;position:relative;overflow:hidden;}
+.e-gauge-bg{width:100px;height:100px;border-radius:50%;border:8px solid rgba(16,185,129,.12);position:absolute;top:0;clip-path:polygon(0 50%,100% 50%,100% 0,0 0);}
+.e-gauge-fill{width:100px;height:100px;border-radius:50%;border:8px solid var(--accent);position:absolute;top:0;clip-path:polygon(0 50%,100% 50%,100% 0,0 0);transform-origin:50% 100%;transition:transform 2s ease;}
+.e-val{font-family:'Orbitron',sans-serif;font-size:2rem;font-weight:900;color:var(--accent);text-shadow:0 0 20px rgba(16,185,129,.4);}
+.e-unit{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--muted);margin-top:4px;}
+/* savings big number */
+.savings-big{text-align:center;padding:40px 0 0;}
+.savings-num{font-family:'Orbitron',sans-serif;font-size:5rem;font-weight:900;color:var(--accent);text-shadow:0 0 40px rgba(16,185,129,.4);line-height:1;}
+.savings-label{font-family:'Space Mono',monospace;font-size:.8rem;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-top:10px;}
+
+/* CONTENT */
+.content-section{padding:80px 0;}
+.sec-label{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--accent);letter-spacing:.25em;text-transform:uppercase;display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.sec-label::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--accent),transparent);}
+h2.sec-title{font-family:'Orbitron',sans-serif;font-size:clamp(1.5rem,2.5vw,2rem);font-weight:700;letter-spacing:.05em;margin-bottom:36px;}
+h2.sec-title .glow{color:var(--accent);text-shadow:0 0 20px rgba(16,185,129,.4);}
+
+.overview-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start;}
+.overview-text p{font-size:1rem;line-height:1.85;color:#8aacbf;margin-bottom:16px;}
+.overview-text p strong{color:var(--text);}
+
+/* TEAM ROLE */
+.role-highlight{background:var(--card);border-left:3px solid var(--accent);padding:20px 24px;margin:24px 0;}
+.role-highlight-title{font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:700;color:var(--accent);letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px;}
+.role-highlight-text{font-size:.95rem;color:#8aacbf;line-height:1.6;}
+
+.key-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.k-stat{background:var(--card);border:1px solid var(--border);padding:20px;position:relative;}
+.k-stat::before{content:attr(data-label);position:absolute;top:10px;right:10px;font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
+.k-stat-val{font-family:'Orbitron',sans-serif;font-size:1.7rem;font-weight:900;color:var(--accent);text-shadow:0 0 20px rgba(16,185,129,.3);}
+.k-stat-desc{font-size:.85rem;color:var(--muted);margin-top:6px;}
+
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+.feat-card{background:var(--card);border:1px solid var(--border);padding:28px;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));transition:border-color .3s,box-shadow .3s;opacity:0;transform:translateY(20px);}
+.feat-card.visible{opacity:1;transform:translateY(0);transition:opacity .5s,transform .5s,border-color .3s,box-shadow .3s;}
+.feat-card:hover{border-color:var(--accent);box-shadow:0 0 30px rgba(16,185,129,.1);}
+.feat-icon{font-size:2rem;margin-bottom:14px;display:block;}
+.feat-title{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.08em;margin-bottom:10px;color:#fff;}
+.feat-desc{font-size:.95rem;color:#8aacbf;line-height:1.7;}
+
+.outcomes-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.outcome-item{display:flex;gap:16px;align-items:flex-start;padding:20px;background:var(--card);border:1px solid var(--border);opacity:0;transform:translateX(-16px);}
+.outcome-item.visible{opacity:1;transform:translateX(0);transition:opacity .5s,transform .5s;}
+.outcome-bullet{width:6px;height:6px;background:var(--accent);border-radius:50%;margin-top:8px;flex-shrink:0;box-shadow:0 0 8px var(--accent);}
+.outcome-text{font-size:.95rem;color:#8aacbf;line-height:1.6;}
+.outcome-text strong{color:var(--text);}
+
+.tech-stack{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;}
+.tag{padding:4px 12px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);color:var(--accent);font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;}
+.tag.blue{background:rgba(0,229,255,.07);border-color:rgba(0,229,255,.2);color:#00e5ff;}
+.tag.purple{background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.25);color:#a78bfa;}
+
+.btn-outline{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border:1px solid var(--accent);color:var(--accent);font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;text-decoration:none;cursor:none;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s,box-shadow .3s;}
+.btn-outline:hover{background:rgba(16,185,129,.08);box-shadow:0 0 20px rgba(16,185,129,.2);}
+footer{text-align:center;padding:32px;border-top:1px solid var(--border);font-family:'Space Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:.12em;}
+footer span{color:var(--accent);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:800px){.overview-grid,.features-grid,.outcomes-list,.energy-grid{grid-template-columns:1fr;}nav{padding:16px 20px;}.key-stats{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="scroll-progress" id="scrollProgress"></div>
+<canvas id="canvas-bg"></canvas>
+<div class="noise"></div>
+<div class="wrapper">
+<nav>
+  <a href="rittish_portfolio.html" class="nav-logo">R<span style="color:#fff">ITTISH</span><span style="color:var(--muted)">.</span><span style="color:#7c3aed">G</span></a>
+  <a href="rittish_portfolio.html" class="nav-back">← Back to Portfolio</a>
+</nav>
+
+<section class="proj-hero">
+  <div class="proj-hero-inner">
+    <div class="proj-num">PROJECT_03</div>
+    <div class="proj-tag">Sustainable Energy Development &amp; Mechanical · Team Lead</div>
+    <h1 class="proj-title">SHORE<br><span class="accent">ENERGY</span></h1>
+    <div class="proj-subtitle">Eco-Friendly Energy System Design &amp; Prototyping</div>
+    <p class="proj-tagline">A cross-functional team project designing and prototyping an innovative eco-friendly energy system using novel mechanical methods — achieving a 60% reduction in energy costs while integrating real-time sensor monitoring.</p>
+    <div class="proj-meta-row">
+      <div class="meta-chip"><span class="meta-chip-icon">🌊</span><div><span class="meta-chip-label">Domain</span><span class="meta-chip-val">Sustainable Energy</span></div></div>
+      <div class="meta-chip"><span class="meta-chip-icon">👥</span><div><span class="meta-chip-label">Role</span><span class="meta-chip-val">Team Lead</span></div></div>
+      <div class="meta-chip"><span class="meta-chip-icon">⚙️</span><div><span class="meta-chip-label">Focus</span><span class="meta-chip-val">Mechanical Design</span></div></div>
+      <div class="meta-chip"><span class="meta-chip-icon">📉</span><div><span class="meta-chip-label">Impact</span><span class="meta-chip-val">60% Cost Reduction</span></div></div>
+    </div>
+    <div class="proj-ctas">
+      <a href="rittish_portfolio.html#projects" class="btn-outline">← All Projects</a>
+    </div>
+  </div>
+</section>
+
+<!-- ENERGY METERS -->
+<div class="energy-viz">
+  <div class="container">
+    <div style="text-align:center;font-family:'Space Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:.2em;margin-bottom:36px;">SYSTEM PERFORMANCE METRICS</div>
+    <div class="energy-grid">
+      <div class="energy-card">
+        <div class="e-label">Energy Cost Reduction</div>
+        <div class="e-val" id="costVal" style="font-size:3rem;">0%</div>
+        <div class="e-unit">vs. conventional systems</div>
+      </div>
+      <div class="energy-card" style="border-color:rgba(0,229,255,.15);">
+        <div class="e-label">System Efficiency</div>
+        <div class="e-val" id="effVal" style="color:#00e5ff;text-shadow:0 0 20px rgba(0,229,255,.4);font-size:3rem;">0%</div>
+        <div class="e-unit">energy capture rate</div>
+      </div>
+      <div class="energy-card" style="border-color:rgba(124,58,237,.15);">
+        <div class="e-label">Monitoring Points</div>
+        <div class="e-val" id="monVal" style="color:#a78bfa;text-shadow:0 0 20px rgba(124,58,237,.4);font-size:3rem;">0</div>
+        <div class="e-unit">real-time sensor nodes</div>
+      </div>
+    </div>
+    <div class="savings-big">
+      <div class="savings-num" id="savingsNum">0</div>
+      <div class="savings-label">% Energy Cost Savings Achieved</div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<section class="content-section" style="padding-top:20px;">
+  <div class="container">
+    <div class="sec-label">System Overview</div>
+    <h2 class="sec-title">Project <span class="glow">Overview</span></h2>
+    <div class="overview-grid">
+      <div class="overview-text">
+        <p><strong>Shore Energy</strong> is a sustainable energy development project focused on harnessing renewable energy through novel mechanical design principles. As <strong>Team Lead</strong>, this project required managing cross-functional contributors spanning mechanical engineering, electronics integration, and data systems.</p>
+        <p>The core innovation lies in a <strong>novel mechanical method</strong> that significantly reduces energy conversion losses compared to conventional systems. Through iterative design and prototyping, the team validated a working system achieving a remarkable <strong>60% reduction in energy costs</strong>.</p>
+        <p>Real-time performance tracking was implemented by <strong>integrating sensors and monitoring systems</strong> throughout the prototype, enabling continuous optimization and data-driven refinement during testing phases.</p>
+        <div class="role-highlight">
+          <div class="role-highlight-title">🎖 Team Lead Role</div>
+          <div class="role-highlight-text">Led cross-functional team through full project lifecycle: requirement definition, design iteration, prototype fabrication, sensor integration, and final performance validation.</div>
+        </div>
+        <div class="tech-stack">
+          <span class="tag">Mechanical Design</span><span class="tag blue">Sensor Integration</span>
+          <span class="tag purple">Engineering Design</span><span class="tag">Sustainable Energy</span>
+          <span class="tag blue">Real-time Monitoring</span><span class="tag purple">Prototyping</span>
+        </div>
+      </div>
+      <div class="key-stats">
+        <div class="k-stat" data-label="Impact">
+          <div class="k-stat-val">60%</div>
+          <div class="k-stat-desc">Reduction in energy costs through novel mechanical design</div>
+        </div>
+        <div class="k-stat" data-label="Role" style="border-color:rgba(0,229,255,.15);">
+          <div class="k-stat-val" style="color:#00e5ff;text-shadow:0 0 20px rgba(0,229,255,.3);">Lead</div>
+          <div class="k-stat-desc">Cross-functional team leadership from concept to prototype</div>
+        </div>
+        <div class="k-stat" data-label="Design" style="border-color:rgba(124,58,237,.15);">
+          <div class="k-stat-val" style="color:#a78bfa;text-shadow:0 0 20px rgba(124,58,237,.3);">Novel</div>
+          <div class="k-stat-desc">Innovative mechanical method demonstrating engineering excellence</div>
+        </div>
+        <div class="k-stat" data-label="Monitoring">
+          <div class="k-stat-val">Live</div>
+          <div class="k-stat-desc">Real-time sensor monitoring integrated into the prototype</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="content-section" style="background:var(--surface);">
+  <div class="container">
+    <div class="sec-label">Core Contributions</div>
+    <h2 class="sec-title">Key <span class="glow">Features</span></h2>
+    <div class="features-grid">
+      <div class="feat-card">
+        <span class="feat-icon">🌊</span>
+        <div class="feat-title">Novel Mechanical Method</div>
+        <div class="feat-desc">Designed an innovative mechanical energy conversion mechanism that captures and channels energy more efficiently than conventional approaches, enabling the 60% cost reduction.</div>
+      </div>
+      <div class="feat-card" style="transition-delay:.1s">
+        <span class="feat-icon">👥</span>
+        <div class="feat-title">Cross-Functional Team Leadership</div>
+        <div class="feat-desc">Led and coordinated a diverse team spanning mechanical, electrical, and software domains. Managed timelines, task delegation, design reviews, and integration milestones.</div>
+      </div>
+      <div class="feat-card" style="transition-delay:.2s">
+        <span class="feat-icon">📡</span>
+        <div class="feat-title">Real-Time Performance Monitoring</div>
+        <div class="feat-desc">Integrated sensor arrays throughout the prototype to capture live performance data — power output, efficiency metrics, and operational parameters — enabling continuous optimization.</div>
+      </div>
+      <div class="feat-card" style="transition-delay:.3s">
+        <span class="feat-icon">♻️</span>
+        <div class="feat-title">Eco-Friendly Design Principles</div>
+        <div class="feat-desc">All design decisions prioritized sustainability — minimal material waste, low environmental impact manufacturing methods, and renewable energy sourcing as core engineering constraints.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OUTCOMES -->
+<section class="content-section">
+  <div class="container">
+    <div class="sec-label">Results &amp; Impact</div>
+    <h2 class="sec-title">Project <span class="glow">Outcomes</span></h2>
+    <div class="outcomes-list">
+      <div class="outcome-item">
+        <div class="outcome-bullet"></div>
+        <div class="outcome-text"><strong>60% energy cost reduction</strong> validated through prototype testing, demonstrating the viability of the novel mechanical approach over conventional methods.</div>
+      </div>
+      <div class="outcome-item" style="transition-delay:.1s">
+        <div class="outcome-bullet"></div>
+        <div class="outcome-text"><strong>Functional prototype</strong> built from ground up, integrating mechanical systems with sensor monitoring for real-time performance tracking.</div>
+      </div>
+      <div class="outcome-item" style="transition-delay:.2s">
+        <div class="outcome-bullet"></div>
+        <div class="outcome-text"><strong>Demonstrated Engineering Design excellence</strong> and sustainability focus recognized in academic and competition settings.</div>
+      </div>
+      <div class="outcome-item" style="transition-delay:.3s">
+        <div class="outcome-bullet"></div>
+        <div class="outcome-text"><strong>Successful team leadership experience</strong> managing cross-functional contributors, design iteration cycles, and final prototype validation.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>RITTISH G</span> · Shore Energy · Team Lead · EEE '27 · Sri Eshwar College of Engineering
+</footer>
+</div>
+
+<script>
+const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px';});
+function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing);}animRing();
+const prog=document.getElementById('scrollProgress');
+window.addEventListener('scroll',()=>{prog.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%';});
+const canvas=document.getElementById('canvas-bg'),ctx=canvas.getContext('2d');
+let W,H,nodes=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+class Node{constructor(){this.reset();}reset(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.r=Math.random()*1.5+.5;this.alpha=Math.random()*.5+.2;}update(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset();}draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle=`rgba(16,185,129,${this.alpha})`;ctx.fill();}}
+for(let i=0;i<80;i++)nodes.push(new Node());
+function drawBG(){ctx.clearRect(0,0,W,H);nodes.forEach(n=>n.update());for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<140){ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.strokeStyle=`rgba(16,185,129,${(1-d/140)*.2})`;ctx.lineWidth=.5;ctx.stroke();}}nodes.forEach(n=>n.draw());requestAnimationFrame(drawBG);}drawBG();
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.15});
+document.querySelectorAll('.feat-card,.outcome-item').forEach(el=>io.observe(el));
+// Counter animations
+function animateCount(el,target,suffix,duration){
+  let start=0,step=target/60;
+  const timer=setInterval(()=>{start+=step;if(start>=target){start=target;clearInterval(timer);}el.textContent=Math.floor(start)+(suffix||'');},duration/60);
+}
+setTimeout(()=>{
+  animateCount(document.getElementById('costVal'),60,'%',1500);
+  animateCount(document.getElementById('effVal'),82,'%',1800);
+  animateCount(document.getElementById('monVal'),6,'',1200);
+  animateCount(document.getElementById('savingsNum'),60,'',2000);
+},800);
+</script>
+</body>
+</html>

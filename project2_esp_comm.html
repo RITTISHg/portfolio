@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ESP8266 Two Way Communication — Rittish G</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#020810;--surface:#050f1e;--card:#071428;--accent:#00e5ff;--accent2:#7c3aed;--accent3:#10b981;--text:#e2f0ff;--muted:#5a7fa0;--border:rgba(0,229,255,0.12);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;cursor:none;}
+.cursor{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 12px var(--accent),0 0 30px rgba(0,229,255,.4);}
+.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(0,229,255,.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .2s,height .2s;}
+#canvas-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:0.4;}
+.noise{position:fixed;inset:0;z-index:1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;opacity:.5;}
+.wrapper{position:relative;z-index:2;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 48px;background:rgba(2,8,16,.85);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:.2em;color:var(--accent);text-decoration:none;text-shadow:0 0 20px rgba(0,229,255,.6);}
+.nav-back{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--muted);text-decoration:none;letter-spacing:.12em;display:flex;align-items:center;gap:8px;transition:color .2s;cursor:none;}
+.nav-back:hover{color:var(--accent);}
+.scroll-progress{position:fixed;top:0;left:0;height:2px;background:linear-gradient(to right,var(--accent2),var(--accent));z-index:200;width:0%;box-shadow:0 0 8px var(--accent);}
+.container{max-width:1100px;margin:0 auto;padding:0 32px;}
+
+/* HERO — purple accent theme for this project */
+.proj-hero{min-height:100vh;display:flex;align-items:center;padding-top:80px;position:relative;overflow:hidden;}
+.proj-hero-inner{width:100%;max-width:1100px;margin:0 auto;padding:0 32px;}
+.proj-tag{font-family:'Space Mono',monospace;font-size:.72rem;color:#a78bfa;letter-spacing:.25em;text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:18px;opacity:0;animation:fadeUp .8s .2s forwards;}
+.proj-tag::before{content:'';width:30px;height:1px;background:#a78bfa;}
+.proj-num{font-family:'Orbitron',sans-serif;font-size:.75rem;color:var(--muted);letter-spacing:.3em;margin-bottom:12px;opacity:0;animation:fadeUp .8s .15s forwards;}
+h1.proj-title{font-family:'Orbitron',sans-serif;font-size:clamp(2rem,4.5vw,3.8rem);font-weight:900;letter-spacing:.05em;line-height:1.05;opacity:0;animation:fadeUp .8s .3s forwards;}
+h1.proj-title .accent{color:#a78bfa;text-shadow:0 0 30px rgba(124,58,237,.5);}
+.proj-subtitle{font-family:'Space Mono',monospace;font-size:.8rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:14px;opacity:0;animation:fadeUp .8s .45s forwards;}
+.proj-tagline{font-size:1.15rem;line-height:1.8;color:#a0c4d8;max-width:600px;margin-top:22px;opacity:0;animation:fadeUp .8s .6s forwards;}
+.proj-meta-row{display:flex;flex-wrap:wrap;gap:24px;margin-top:36px;opacity:0;animation:fadeUp .8s .75s forwards;}
+.meta-chip{display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--card);border:1px solid var(--border);}
+.meta-chip-label{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;display:block;margin-bottom:2px;}
+.meta-chip-val{font-size:.9rem;font-weight:700;color:var(--text);}
+.meta-chip-icon{font-size:1.3rem;}
+.proj-ctas{display:flex;gap:14px;margin-top:40px;opacity:0;animation:fadeUp .8s .9s forwards;}
+
+/* COMM VISUALISER */
+.comm-viz{width:100%;padding:60px 0;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:60px 0;}
+.comm-inner{display:flex;align-items:center;justify-content:center;gap:0;position:relative;}
+.esp-board{width:160px;background:var(--card);border:1px solid var(--border);padding:20px;text-align:center;position:relative;}
+.esp-board.active{border-color:#a78bfa;box-shadow:0 0 30px rgba(124,58,237,.2);}
+.esp-label{font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:700;color:var(--text);margin-bottom:6px;}
+.esp-sub{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:.08em;}
+.esp-led{width:10px;height:10px;border-radius:50%;margin:12px auto 0;background:var(--accent3);box-shadow:0 0 10px var(--accent3);animation:blink 1.4s infinite;}
+.esp-led.purple{background:#a78bfa;box-shadow:0 0 10px #a78bfa;animation-delay:.7s;}
+.signal-track{flex:1;height:60px;position:relative;max-width:340px;}
+.signal-track svg{width:100%;height:100%;}
+.packet{position:absolute;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);}
+.packet.p1{animation:travel1 2s linear infinite;}
+.packet.p2{animation:travel2 2s linear 1s infinite;background:#a78bfa;box-shadow:0 0 12px #a78bfa;}
+@keyframes travel1{from{left:0%}to{left:100%}}
+@keyframes travel2{from{left:100%}to{left:0%}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.protocol-box{position:absolute;top:-32px;left:50%;transform:translateX(-50%);font-family:'Space Mono',monospace;font-size:.6rem;color:#a78bfa;letter-spacing:.1em;white-space:nowrap;background:var(--bg);padding:4px 10px;border:1px solid rgba(124,58,237,.3);}
+
+/* CONTENT */
+.content-section{padding:80px 0;}
+.sec-label{font-family:'Space Mono',monospace;font-size:.72rem;color:#a78bfa;letter-spacing:.25em;text-transform:uppercase;display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.sec-label::after{content:'';flex:1;height:1px;background:linear-gradient(to right,#a78bfa,transparent);}
+h2.sec-title{font-family:'Orbitron',sans-serif;font-size:clamp(1.5rem,2.5vw,2rem);font-weight:700;letter-spacing:.05em;margin-bottom:36px;}
+h2.sec-title .glow{color:#a78bfa;text-shadow:0 0 20px rgba(124,58,237,.4);}
+
+.overview-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start;}
+.overview-text p{font-size:1rem;line-height:1.85;color:#8aacbf;margin-bottom:16px;}
+.overview-text p strong{color:var(--text);}
+.key-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.k-stat{background:var(--card);border:1px solid var(--border);padding:20px;position:relative;overflow:hidden;}
+.k-stat::before{content:attr(data-label);position:absolute;top:10px;right:10px;font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
+.k-stat-val{font-family:'Orbitron',sans-serif;font-size:1.7rem;font-weight:900;color:#a78bfa;text-shadow:0 0 20px rgba(124,58,237,.3);}
+.k-stat-desc{font-size:.85rem;color:var(--muted);margin-top:6px;}
+
+/* PROTOCOL STEPS */
+.proto-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.proto-step{background:var(--card);border:1px solid var(--border);padding:26px;position:relative;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));opacity:0;transform:translateY(20px);}
+.proto-step.visible{opacity:1;transform:translateY(0);transition:opacity .5s,transform .5s;}
+.proto-step:hover{border-color:#a78bfa;box-shadow:0 0 20px rgba(124,58,237,.1);}
+.step-num{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--muted);letter-spacing:.2em;margin-bottom:10px;}
+.step-title{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;color:#fff;letter-spacing:.05em;margin-bottom:10px;}
+.step-desc{font-size:.9rem;color:#8aacbf;line-height:1.65;}
+
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+.feat-card{background:var(--card);border:1px solid var(--border);padding:28px;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));transition:border-color .3s,box-shadow .3s;opacity:0;transform:translateY(20px);}
+.feat-card.visible{opacity:1;transform:translateY(0);transition:opacity .5s,transform .5s,border-color .3s,box-shadow .3s;}
+.feat-card:hover{border-color:#a78bfa;box-shadow:0 0 30px rgba(124,58,237,.1);}
+.feat-icon{font-size:2rem;margin-bottom:14px;display:block;}
+.feat-title{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.08em;margin-bottom:10px;color:#fff;}
+.feat-desc{font-size:.95rem;color:#8aacbf;line-height:1.7;}
+
+.outcomes-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.outcome-item{display:flex;gap:16px;align-items:flex-start;padding:20px;background:var(--card);border:1px solid var(--border);opacity:0;transform:translateX(-16px);}
+.outcome-item.visible{opacity:1;transform:translateX(0);transition:opacity .5s,transform .5s;}
+.outcome-bullet{width:6px;height:6px;background:#a78bfa;border-radius:50%;margin-top:8px;flex-shrink:0;box-shadow:0 0 8px #a78bfa;}
+.outcome-text{font-size:.95rem;color:#8aacbf;line-height:1.6;}
+.outcome-text strong{color:var(--text);}
+
+.tech-stack{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;}
+.tag{padding:4px 12px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);color:var(--accent);font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;}
+.tag.purple{background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.25);color:#a78bfa;}
+.tag.green{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.25);color:#34d399;}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border:1px solid #a78bfa;color:#a78bfa;font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;text-decoration:none;cursor:none;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s,box-shadow .3s;}
+.btn-outline:hover{background:rgba(124,58,237,.08);box-shadow:0 0 20px rgba(124,58,237,.2);}
+footer{text-align:center;padding:32px;border-top:1px solid var(--border);font-family:'Space Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:.12em;}
+footer span{color:#a78bfa;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:800px){.overview-grid,.features-grid,.outcomes-list,.proto-steps{grid-template-columns:1fr;}nav{padding:16px 20px;}.comm-inner{flex-direction:column;}.signal-track{transform:rotate(90deg);}}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="scroll-progress" id="scrollProgress"></div>
+<canvas id="canvas-bg"></canvas>
+<div class="noise"></div>
+<div class="wrapper">
+<nav>
+  <a href="rittish_portfolio.html" class="nav-logo">R<span style="color:#fff">ITTISH</span><span style="color:var(--muted)">.</span><span style="color:var(--accent2)">G</span></a>
+  <a href="rittish_portfolio.html" class="nav-back">← Back to Portfolio</a>
+</nav>
+
+<section class="proj-hero">
+  <div class="proj-hero-inner">
+    <div class="proj-num">PROJECT_02</div>
+    <div class="proj-tag">Embedded Systems &amp; Automation</div>
+    <h1 class="proj-title">ESP8266<br><span class="accent">TWO WAY COMM</span></h1>
+    <div class="proj-subtitle">Bidirectional Inter-Board Communication &amp; Automation System</div>
+    <p class="proj-tagline">A custom-engineered bidirectional communication architecture enabling multiple ESP8266 microcontrollers to exchange data packets reliably, powering autonomous automation workflows without centralized servers.</p>
+    <div class="proj-meta-row">
+      <div class="meta-chip"><span class="meta-chip-icon">🔗</span><div><span class="meta-chip-label">Architecture</span><span class="meta-chip-val">Bidirectional P2P</span></div></div>
+      <div class="meta-chip"><span class="meta-chip-icon">📡</span><div><span class="meta-chip-label">Hardware</span><span class="meta-chip-val">Multi-ESP8266</span></div></div>
+      <div class="meta-chip"><span class="meta-chip-icon">⚙️</span><div><span class="meta-chip-label">Firmware</span><span class="meta-chip-val">Embedded C</span></div></div>
+      <div class="meta-chip"><span class="meta-chip-icon">🤖</span><div><span class="meta-chip-label">Operation</span><span class="meta-chip-val">Autonomous</span></div></div>
+    </div>
+    <div class="proj-ctas">
+      <a href="rittish_portfolio.html#projects" class="btn-outline">← All Projects</a>
+    </div>
+  </div>
+</section>
+
+<!-- COMM VISUALIZER -->
+<div class="comm-viz">
+  <div class="container">
+    <div style="text-align:center;font-family:'Space Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:.2em;margin-bottom:36px;">LIVE PACKET EXCHANGE SIMULATION</div>
+    <div class="comm-inner">
+      <div class="esp-board active">
+        <div class="esp-label">BOARD A</div>
+        <div class="esp-sub">ESP8266 #01</div>
+        <div class="esp-sub" style="margin-top:6px;color:#a78bfa;" id="boardA-status">TRANSMITTING</div>
+        <div class="esp-led"></div>
+      </div>
+      <div class="signal-track">
+        <div class="protocol-box">ESP-NOW / WiFi UDP</div>
+        <svg viewBox="0 0 340 60">
+          <line x1="0" y1="30" x2="340" y2="30" stroke="rgba(124,58,237,.3)" stroke-width="1" stroke-dasharray="6,4"/>
+          <line x1="0" y1="20" x2="340" y2="20" stroke="rgba(0,229,255,.2)" stroke-width="1" stroke-dasharray="4,6"/>
+        </svg>
+        <div class="packet p1"></div>
+        <div class="packet p2"></div>
+      </div>
+      <div class="esp-board active" style="border-color:var(--accent2);">
+        <div class="esp-label">BOARD B</div>
+        <div class="esp-sub">ESP8266 #02</div>
+        <div class="esp-sub" style="margin-top:6px;color:var(--accent);" id="boardB-status">RECEIVING</div>
+        <div class="esp-led purple"></div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:40px;display:flex;justify-content:center;gap:40px;">
+      <div style="text-align:center;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;color:var(--accent);text-shadow:0 0 20px rgba(0,229,255,.3);" id="pktCounter">0</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.12em;margin-top:4px;">PACKETS SENT</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;color:#a78bfa;text-shadow:0 0 20px rgba(124,58,237,.3);" id="latency">--</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.12em;margin-top:4px;">AVG LATENCY (ms)</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;color:var(--accent3);text-shadow:0 0 20px rgba(16,185,129,.3);">100%</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.12em;margin-top:4px;">RELIABILITY</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<section class="content-section">
+  <div class="container">
+    <div class="sec-label">System Overview</div>
+    <h2 class="sec-title">Project <span class="glow">Overview</span></h2>
+    <div class="overview-grid">
+      <div class="overview-text">
+        <p>The ESP8266 Two Way Communication project addresses a critical challenge in distributed embedded systems: <strong>reliable, low-latency data exchange between multiple microcontroller boards</strong> without relying on a centralized server or cloud infrastructure.</p>
+        <p>A custom <strong>data transfer protocol</strong> was engineered from scratch, defining packet structure, acknowledgment mechanisms, and retry logic directly in firmware. This ensures that commands and sensor readings reach their destination even in noisy wireless environments.</p>
+        <p>The resulting system enables true <strong>autonomous automation</strong> — boards independently make decisions and execute actions based on data received from peer devices, creating a self-coordinating embedded network ideal for distributed control applications.</p>
+        <div class="tech-stack">
+          <span class="tag purple">ESP8266 ×2</span><span class="tag">Embedded C</span><span class="tag green">ESP-NOW</span>
+          <span class="tag purple">WiFi UDP</span><span class="tag">Custom Protocol</span><span class="tag green">Automation</span>
+        </div>
+      </div>
+      <div class="key-stats">
+        <div class="k-stat" data-label="Nodes">
+          <div class="k-stat-val">Multi</div>
+          <div class="k-stat-desc">Multiple ESP8266 boards communicating as a peer network</div>
+        </div>
+        <div class="k-stat" data-label="Protocol">
+          <div class="k-stat-val" style="color:var(--accent);text-shadow:0 0 20px rgba(0,229,255,.3);">Custom</div>
+          <div class="k-stat-desc">Engineered data transfer protocol with ACK and retry logic</div>
+        </div>
+        <div class="k-stat" data-label="Firmware" style="">
+          <div class="k-stat-val" style="color:#34d399;text-shadow:0 0 20px rgba(16,185,129,.3);">Async</div>
+          <div class="k-stat-desc">Non-blocking firmware loop with interrupt-driven comms</div>
+        </div>
+        <div class="k-stat" data-label="Operation">
+          <div class="k-stat-val">Auto</div>
+          <div class="k-stat-desc">Fully autonomous operation without human intervention</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROTOCOL STEPS -->
+<section class="content-section" style="background:var(--surface);">
+  <div class="container">
+    <div class="sec-label">Communication Protocol</div>
+    <h2 class="sec-title">Protocol <span class="glow">Design</span></h2>
+    <div class="proto-steps">
+      <div class="proto-step">
+        <div class="step-num">STEP_01</div>
+        <div class="step-title">Packet Formation</div>
+        <div class="step-desc">Sender board constructs a structured data packet containing source ID, destination ID, command/data payload, checksum, and sequence number for ordering.</div>
+      </div>
+      <div class="proto-step" style="transition-delay:.1s">
+        <div class="step-num">STEP_02</div>
+        <div class="step-title">Wireless Transmission</div>
+        <div class="step-desc">Packet transmitted over WiFi using ESP-NOW or UDP. Channel selection and power management optimized in firmware for reliable short-range inter-board communication.</div>
+      </div>
+      <div class="proto-step" style="transition-delay:.2s">
+        <div class="step-num">STEP_03</div>
+        <div class="step-title">ACK &amp; Retry Logic</div>
+        <div class="step-desc">Receiver sends acknowledgment back to sender. If ACK not received within timeout window, sender retransmits up to N times before flagging a communication error.</div>
+      </div>
+      <div class="proto-step" style="transition-delay:.3s">
+        <div class="step-num">STEP_04</div>
+        <div class="step-title">Action Execution</div>
+        <div class="step-desc">Receiving board parses the validated packet and autonomously executes the commanded action — actuating outputs, updating state, or forwarding data to the next node.</div>
+      </div>
+      <div class="proto-step" style="transition-delay:.4s">
+        <div class="step-num">STEP_05</div>
+        <div class="step-title">Status Report</div>
+        <div class="step-desc">Receiver transmits its own status data back to the sender, completing the bidirectional exchange loop and keeping both boards synchronized.</div>
+      </div>
+      <div class="proto-step" style="transition-delay:.5s">
+        <div class="step-num">STEP_06</div>
+        <div class="step-title">Autonomous Loop</div>
+        <div class="step-desc">Both boards continue their independent control loops, making local decisions while periodically syncing state with peer boards for coordinated automation.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="content-section">
+  <div class="container">
+    <div class="sec-label">Core Capabilities</div>
+    <h2 class="sec-title">Key <span class="glow">Features</span></h2>
+    <div class="features-grid">
+      <div class="feat-card">
+        <span class="feat-icon">🔄</span>
+        <div class="feat-title">True Bidirectional Data Flow</div>
+        <div class="feat-desc">Both boards simultaneously transmit and receive without collision. Full-duplex coordination via time-division multiplexing in the firmware communication stack.</div>
+      </div>
+      <div class="feat-card" style="transition-delay:.1s">
+        <span class="feat-icon">🛡️</span>
+        <div class="feat-title">Reliable Custom Protocol</div>
+        <div class="feat-desc">Engineered data transfer protocol with checksum verification, sequence numbering, ACK/NACK handshaking, and automatic retry logic ensuring zero data loss.</div>
+      </div>
+      <div class="feat-card" style="transition-delay:.2s">
+        <span class="feat-icon">⚡</span>
+        <div class="feat-title">Optimized User Interface</div>
+        <div class="feat-desc">Responsive UI with real-time status feedback for both boards. System responsiveness optimized through non-blocking I/O and interrupt-driven serial/WiFi event handling.</div>
+      </div>
+      <div class="feat-card" style="transition-delay:.3s">
+        <span class="feat-icon">🤖</span>
+        <div class="feat-title">Autonomous Firmware Operation</div>
+        <div class="feat-desc">Embedded C firmware enabling boards to operate fully independently, making local automation decisions based on received peer data without any cloud dependency.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OUTCOMES -->
+<section class="content-section" style="background:var(--surface);">
+  <div class="container">
+    <div class="sec-label">Results</div>
+    <h2 class="sec-title">Project <span class="glow">Outcomes</span></h2>
+    <div class="outcomes-list">
+      <div class="outcome-item">
+        <div class="outcome-bullet"></div>
+        <div class="outcome-text"><strong>Reliable inter-board communication</strong> achieved with custom protocol delivering consistent packet delivery across wireless medium.</div>
+      </div>
+      <div class="outcome-item" style="transition-delay:.1s">
+        <div class="outcome-bullet"></div>
+        <div class="outcome-text"><strong>Autonomous automation control</strong> with boards making independent decisions and executing actions based on peer-transmitted data.</div>
+      </div>
+      <div class="outcome-item" style="transition-delay:.2s">
+        <div class="outcome-bullet"></div>
+        <div class="outcome-text"><strong>Scalable architecture</strong> designed to support additional ESP8266 nodes with minimal firmware modifications to the core protocol stack.</div>
+      </div>
+      <div class="outcome-item" style="transition-delay:.3s">
+        <div class="outcome-bullet"></div>
+        <div class="outcome-text"><strong>Optimized real-time responsiveness</strong> through non-blocking firmware design, ensuring seamless data exchange with minimal latency.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>RITTISH G</span> · ESP8266 Two Way Communication · EEE '27 · Sri Eshwar College of Engineering
+</footer>
+</div>
+
+<script>
+const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px';});
+function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing);}animRing();
+const prog=document.getElementById('scrollProgress');
+window.addEventListener('scroll',()=>{prog.style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%';});
+const canvas=document.getElementById('canvas-bg'),ctx=canvas.getContext('2d');
+let W,H,nodes=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+class Node{constructor(){this.reset();}reset(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.r=Math.random()*1.5+.5;this.alpha=Math.random()*.5+.2;}update(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset();}draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle=`rgba(124,58,237,${this.alpha})`;ctx.fill();}}
+for(let i=0;i<80;i++)nodes.push(new Node());
+function drawBG(){ctx.clearRect(0,0,W,H);nodes.forEach(n=>n.update());for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<140){ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.strokeStyle=`rgba(124,58,237,${(1-d/140)*.2})`;ctx.lineWidth=.5;ctx.stroke();}}nodes.forEach(n=>n.draw());requestAnimationFrame(drawBG);}
+drawBG();
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.15});
+document.querySelectorAll('.feat-card,.outcome-item,.proto-step').forEach(el=>io.observe(el));
+// Packet counter
+let pkt=0;
+setInterval(()=>{
+  pkt+=Math.floor(Math.random()*3)+1;
+  document.getElementById('pktCounter').textContent=pkt;
+  document.getElementById('latency').textContent=Math.floor(Math.random()*15+5);
+  const statuses=[['TRANSMITTING','RECEIVING'],['RECEIVING','TRANSMITTING'],['IDLE','PROCESSING'],['PROCESSING','IDLE']];
+  const s=statuses[Math.floor(Math.random()*statuses.length)];
+  document.getElementById('boardA-status').textContent=s[0];
+  document.getElementById('boardB-status').textContent=s[1];
+},1800);
+</script>
+</body>
+</html>

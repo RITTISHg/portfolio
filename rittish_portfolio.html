@@ -1,0 +1,2511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RITTISH G — Engineer & Innovator</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #020810;
+      --surface: #050f1e;
+      --card: #071428;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --accent3: #10b981;
+      --glow: rgba(0, 229, 255, 0.15);
+      --text: #e2f0ff;
+      --muted: #5a7fa0;
+      --border: rgba(0, 229, 255, 0.12);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ──────── CURSOR ──────── */
+    .cursor {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform .1s, background .2s;
+      box-shadow: 0 0 12px var(--accent), 0 0 30px rgba(0, 229, 255, .4);
+    }
+
+    .cursor-ring {
+      position: fixed;
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid rgba(0, 229, 255, .5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform .18s ease, width .2s, height .2s;
+    }
+
+    body:hover .cursor-ring {
+      width: 40px;
+      height: 40px;
+    }
+
+    /* ──────── CANVAS BG ──────── */
+    #canvas-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.45;
+    }
+
+    /* ──────── NOISE OVERLAY ──────── */
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    /* ──────── LAYOUT ──────── */
+    .wrapper {
+      position: relative;
+      z-index: 2;
+    }
+
+    section {
+      padding: 100px 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ──────── NAV ──────── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(2, 8, 16, .8);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      transition: background .3s;
+    }
+
+    .nav-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 1.1rem;
+      letter-spacing: .2em;
+      color: var(--accent);
+      text-shadow: 0 0 20px rgba(0, 229, 255, .6);
+    }
+
+    .nav-logo span {
+      color: #fff;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'Space Mono', monospace;
+      font-size: .72rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: .12em;
+      transition: color .2s, text-shadow .2s;
+      text-transform: uppercase;
+    }
+
+    .nav-links a:hover {
+      color: var(--accent);
+      text-shadow: 0 0 12px rgba(0, 229, 255, .7);
+    }
+
+    /* ──────── HERO ──────── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding-top: 0;
+    }
+
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .hero-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: .75rem;
+      color: var(--accent);
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp .8s .2s forwards;
+    }
+
+    .hero-tag::before {
+      content: '';
+      display: block;
+      width: 30px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    h1.hero-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: .05em;
+      opacity: 0;
+      animation: fadeUp .8s .4s forwards;
+    }
+
+    h1.hero-name .accent {
+      color: var(--accent);
+      text-shadow: 0 0 30px rgba(0, 229, 255, .5);
+    }
+
+    .hero-title {
+      font-size: 1.05rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-top: 14px;
+      opacity: 0;
+      animation: fadeUp .8s .6s forwards;
+    }
+
+    .hero-desc {
+      margin-top: 24px;
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: #a0c4d8;
+      max-width: 480px;
+      opacity: 0;
+      animation: fadeUp .8s .8s forwards;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      margin-top: 40px;
+      opacity: 0;
+      animation: fadeUp .8s 1s forwards;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: var(--accent);
+      color: #020810;
+      font-family: 'Orbitron', sans-serif;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: none;
+      cursor: none;
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow .3s;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 30px rgba(0, 229, 255, .6);
+    }
+
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, .15);
+      transform: translateX(-100%);
+      transition: transform .3s;
+    }
+
+    .btn-primary:hover::after {
+      transform: translateX(0);
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: 'Orbitron', sans-serif;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: none;
+      transition: background .2s, box-shadow .3s;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+
+    .btn-outline:hover {
+      background: rgba(0, 229, 255, .08);
+      box-shadow: 0 0 20px rgba(0, 229, 255, .2);
+    }
+
+    .hero-right {
+      display: flex;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeIn 1.2s .5s forwards;
+    }
+
+    .avatar-frame {
+      position: relative;
+      width: 320px;
+      height: 320px;
+    }
+
+    .avatar-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, var(--accent), var(--accent2), var(--accent3), var(--accent));
+      animation: spin 6s linear infinite;
+      filter: blur(2px);
+      opacity: .7;
+    }
+
+    .avatar-inner {
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .avatar-letter {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 5rem;
+      font-weight: 900;
+      color: var(--accent);
+      text-shadow: 0 0 40px rgba(0, 229, 255, .6);
+      line-height: 1;
+    }
+
+    .avatar-sublabel {
+      font-family: 'Space Mono', monospace;
+      font-size: .6rem;
+      color: var(--muted);
+      letter-spacing: .2em;
+    }
+
+    .orbit-ring {
+      position: absolute;
+      border: 1px dashed rgba(0, 229, 255, .2);
+      border-radius: 50%;
+      animation: spin 12s linear infinite;
+    }
+
+    .orbit-ring:nth-child(3) {
+      inset: -28px;
+      animation-duration: 12s;
+    }
+
+    .orbit-ring:nth-child(4) {
+      inset: -56px;
+      animation-duration: 20s;
+      animation-direction: reverse;
+      border-color: rgba(124, 58, 237, .2);
+    }
+
+    .orbit-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      top: 50%;
+      left: 100%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .orbit-dot2 {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent2);
+      top: 0%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px var(--accent2);
+    }
+
+    /* ──────── STATS STRIP ──────── */
+    .stats-strip {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 32px 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 0 24px;
+      border-right: 1px solid var(--border);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .5s, transform .5s;
+    }
+
+    .stat-item:last-child {
+      border-right: none;
+    }
+
+    .stat-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .stat-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--accent);
+      display: block;
+      text-shadow: 0 0 20px rgba(0, 229, 255, .4);
+    }
+
+    .stat-label {
+      font-size: .8rem;
+      color: var(--muted);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-family: 'Space Mono', monospace;
+      margin-top: 6px;
+    }
+
+    /* ──────── SECTION HEADINGS ──────── */
+    .section-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: .72rem;
+      color: var(--accent);
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-tag::before,
+    .section-tag::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--accent), transparent);
+      max-width: 60px;
+    }
+
+    .section-tag::before {
+      background: linear-gradient(to left, var(--accent), transparent);
+    }
+
+    h2.section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 900;
+      letter-spacing: .05em;
+      margin-bottom: 60px;
+      text-align: center;
+    }
+
+    h2.section-title .glow {
+      color: var(--accent);
+      text-shadow: 0 0 30px rgba(0, 229, 255, .4);
+    }
+
+    /* ──────── PROJECTS ──────── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .project-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s, transform .3s, box-shadow .3s;
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .project-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity .6s, transform .6s, border-color .3s, box-shadow .3s;
+    }
+
+    .project-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 40px rgba(0, 229, 255, .1), inset 0 0 40px rgba(0, 229, 255, .03);
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(0, 229, 255, .04) 0%, transparent 60%);
+      transform: scale(0);
+      transition: transform .5s;
+    }
+
+    .project-card:hover::before {
+      transform: scale(1);
+    }
+
+    .project-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: .65rem;
+      color: var(--muted);
+      letter-spacing: .2em;
+      margin-bottom: 14px;
+    }
+
+    .project-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: .05em;
+    }
+
+    .project-subtitle {
+      font-family: 'Space Mono', monospace;
+      font-size: .7rem;
+      color: var(--accent);
+      letter-spacing: .1em;
+      margin-bottom: 18px;
+      opacity: .8;
+    }
+
+    .project-desc {
+      font-size: .95rem;
+      color: #8aacbf;
+      line-height: 1.7;
+      margin-bottom: 22px;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      padding: 4px 12px;
+      background: rgba(0, 229, 255, .07);
+      border: 1px solid rgba(0, 229, 255, .18);
+      color: var(--accent);
+      font-family: 'Space Mono', monospace;
+      font-size: .62rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .tag.purple {
+      background: rgba(124, 58, 237, .07);
+      border-color: rgba(124, 58, 237, .25);
+      color: #a78bfa;
+    }
+
+    .tag.green {
+      background: rgba(16, 185, 129, .07);
+      border-color: rgba(16, 185, 129, .25);
+      color: #34d399;
+    }
+
+    .project-link {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      color: var(--accent);
+      font-size: 1.1rem;
+      opacity: .5;
+      transition: opacity .2s;
+      text-decoration: none;
+      cursor: none;
+    }
+
+    .project-card:hover .project-link {
+      opacity: 1;
+    }
+
+    /* ──────── SKILLS — HEX CHIP SIGNAL PANEL ──────── */
+    #skills {
+      background: var(--surface);
+    }
+
+    .skills-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 52px;
+    }
+
+    .skill-category {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity .7s cubic-bezier(.4, 0, .2, 1), transform .7s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .skill-category.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .skill-cat-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .skill-cat-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 229, 255, .06);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      flex-shrink: 0;
+    }
+
+    .skill-cat-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .skill-cat-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    /* ── Chip Grid ── */
+    .chips-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    /* ── Skill Chip Card ── */
+    .skill-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 24px 20px 20px;
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+      transition: border-color .4s, box-shadow .4s, transform .4s;
+      cursor: none;
+      opacity: 0;
+      transform: translateY(18px) scale(.96);
+    }
+
+    .skill-chip.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition: opacity .6s cubic-bezier(.4, 0, .2, 1), transform .6s cubic-bezier(.4, 0, .2, 1), border-color .4s, box-shadow .4s;
+    }
+
+    .skill-chip:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 36px rgba(0, 229, 255, .12), inset 0 0 30px rgba(0, 229, 255, .04);
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    /* Scan-line overlay */
+    .skill-chip::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(to right, transparent, var(--accent), transparent);
+      opacity: 0;
+      animation: chipScan 3.5s ease-in-out infinite;
+      animation-delay: var(--scan-delay, 0s);
+    }
+
+    .skill-chip:hover::after {
+      opacity: .6;
+    }
+
+    @keyframes chipScan {
+      0% {
+        top: 0;
+        opacity: 0;
+      }
+
+      10% {
+        opacity: .5;
+      }
+
+      90% {
+        opacity: .5;
+      }
+
+      100% {
+        top: 100%;
+        opacity: 0;
+      }
+    }
+
+    /* Corner brackets */
+    .chip-corner {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border: 1px solid rgba(0, 229, 255, .2);
+      pointer-events: none;
+      transition: border-color .3s;
+    }
+
+    .chip-corner.tl {
+      top: 4px;
+      left: 4px;
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .chip-corner.tr {
+      top: 4px;
+      right: 4px;
+      border-left: none;
+      border-bottom: none;
+    }
+
+    .chip-corner.bl {
+      bottom: 4px;
+      left: 4px;
+      border-right: none;
+      border-top: none;
+    }
+
+    .chip-corner.br {
+      bottom: 4px;
+      right: 4px;
+      border-left: none;
+      border-top: none;
+    }
+
+    .skill-chip:hover .chip-corner {
+      border-color: var(--accent);
+    }
+
+    /* Chip header row */
+    .chip-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .chip-icon-hex {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, rgba(0, 229, 255, .1), rgba(124, 58, 237, .1));
+      border: 1px solid rgba(0, 229, 255, .2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+
+    .skill-chip:hover .chip-icon-hex {
+      background: linear-gradient(135deg, rgba(0, 229, 255, .2), rgba(124, 58, 237, .2));
+    }
+
+    .chip-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chip-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: .72rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: .06em;
+      line-height: 1.2;
+    }
+
+    .chip-sub {
+      font-family: 'Space Mono', monospace;
+      font-size: .55rem;
+      color: var(--muted);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* Signal waveform SVG */
+    .chip-wave {
+      width: 100%;
+      height: 40px;
+      margin-top: 4px;
+      overflow: visible;
+    }
+
+    .wave-line {
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke: url(#waveGrad);
+      filter: drop-shadow(0 0 4px rgba(0, 229, 255, .3));
+      stroke-dasharray: 300;
+      stroke-dashoffset: 300;
+      transition: stroke-dashoffset 1.6s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .skill-chip.visible .wave-line {
+      stroke-dashoffset: 0;
+    }
+
+    .wave-base {
+      fill: none;
+      stroke: rgba(255, 255, 255, .04);
+      stroke-width: 1;
+      stroke-dasharray: 3 4;
+    }
+
+    /* Level indicator dots */
+    .chip-level {
+      display: flex;
+      gap: 4px;
+      margin-top: 10px;
+      justify-content: center;
+    }
+
+    .level-seg {
+      width: 18px;
+      height: 3px;
+      background: rgba(255, 255, 255, .06);
+      border-radius: 1px;
+      transition: background .6s, box-shadow .6s;
+    }
+
+    .level-seg.active {
+      background: var(--accent);
+      box-shadow: 0 0 6px rgba(0, 229, 255, .4);
+    }
+
+    .level-seg.active.mid {
+      background: var(--accent2);
+      box-shadow: 0 0 6px rgba(124, 58, 237, .4);
+    }
+
+    .level-seg.active.high {
+      background: var(--accent3);
+      box-shadow: 0 0 6px rgba(16, 185, 129, .4);
+    }
+
+    /* Status LED */
+    .chip-status {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent3);
+      box-shadow: 0 0 6px var(--accent3);
+      animation: statusBlink 3s ease-in-out infinite;
+    }
+
+    @keyframes statusBlink {
+
+      0%,
+      100% {
+        opacity: .4;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @media(max-width:900px) {
+      .chips-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+    }
+
+    @media(max-width:480px) {
+      .chips-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .chip-wave {
+        height: 32px;
+      }
+    }
+
+    /* ──────── EXPERIENCE ──────── */
+    .timeline {
+      position: relative;
+      padding-left: 32px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent), var(--accent2), transparent);
+      border-radius: 2px;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 40px;
+      opacity: 0;
+      transform: translateX(16px);
+      transition: opacity .6s, transform .6s;
+    }
+
+    .timeline-item.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: -39px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2.5px solid var(--accent);
+    }
+
+    .timeline-date {
+      font-family: 'Space Mono', monospace;
+      font-size: .72rem;
+      color: var(--accent);
+      letter-spacing: .12em;
+      margin-bottom: 6px;
+    }
+
+    .timeline-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .timeline-org {
+      font-size: .9rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .timeline-body {
+      font-size: .95rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .timeline-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    /* ──────── ACHIEVEMENTS ──────── */
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .ach-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 28px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      transition: border-color .3s, box-shadow .3s, transform .3s;
+      opacity: 0;
+      transform: translateY(16px);
+      cursor: none;
+    }
+
+    .ach-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity .5s, transform .5s, border-color .3s, box-shadow .3s;
+    }
+
+    .ach-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 30px rgba(0, 229, 255, .1), inset 0 0 20px rgba(0, 229, 255, .03);
+    }
+
+    .ach-icon {
+      font-size: 2rem;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .ach-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: .82rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: .05em;
+    }
+
+    .ach-desc {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .ach-badge {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 3px 12px;
+      background: rgba(0, 229, 255, .07);
+      border: 1px solid rgba(0, 229, 255, .2);
+      color: var(--accent);
+      font-family: 'Space Mono', monospace;
+      font-size: .6rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    /* ──────── ACHIEVEMENTS IMAGE SLIDER ──────── */
+    .ach-slider-section {
+      margin-top: 50px;
+      position: relative;
+      overflow: hidden;
+      padding: 24px 0;
+    }
+
+    .ach-slider-label {
+      font-family: 'Space Mono', monospace;
+      font-size: .72rem;
+      color: var(--accent);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .ach-slider-label::before,
+    .ach-slider-label::after {
+      content: '';
+      height: 1px;
+      width: 40px;
+      background: linear-gradient(to right, transparent, var(--accent));
+    }
+
+    .ach-slider-label::after {
+      background: linear-gradient(to left, transparent, var(--accent));
+    }
+
+    .ach-slider-track {
+      display: flex;
+      width: max-content;
+      animation: ach-marquee 20s linear infinite;
+      gap: 20px;
+    }
+
+    .ach-slider-track:hover {
+      animation-play-state: paused;
+    }
+
+    .ach-slide {
+      flex-shrink: 0;
+      width: 360px;
+      height: 250px;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border);
+      transition: box-shadow .4s, transform .3s;
+      cursor: default;
+    }
+
+    .ach-slide:hover {
+      box-shadow: 0 0 30px rgba(0, 229, 255, .15);
+      transform: scale(1.03);
+    }
+
+    .ach-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform .5s;
+    }
+
+    .ach-slide:hover img {
+      transform: scale(1.08);
+    }
+
+    .ach-slide-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px;
+      background: linear-gradient(to top, rgba(2, 8, 16, .92) 0%, rgba(2, 8, 16, .6) 60%, transparent 100%);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .35s, transform .35s;
+    }
+
+    .ach-slide:hover .ach-slide-overlay {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .ach-slide-overlay span {
+      font-family: 'Orbitron', sans-serif;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--accent);
+      text-shadow: 0 0 10px rgba(0, 229, 255, .5);
+    }
+
+    /* Gradient edge fades */
+    .ach-slider-section::before,
+    .ach-slider-section::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .ach-slider-section::before {
+      left: 0;
+      background: linear-gradient(to right, var(--surface), transparent);
+    }
+
+    .ach-slider-section::after {
+      right: 0;
+      background: linear-gradient(to left, var(--surface), transparent);
+    }
+
+    @keyframes ach-marquee {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+
+    @media(max-width:900px) {
+      .ach-slide {
+        width: 280px;
+        height: 200px;
+      }
+
+      .ach-slider-track {
+        animation-duration: 15s;
+      }
+    }
+
+    /* ──────── CONTACT ──────── */
+    #contact {
+      background: var(--surface);
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: start;
+    }
+
+    .contact-info h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: .05em;
+    }
+
+    .contact-info p {
+      color: #8aacbf;
+      line-height: 1.8;
+      margin-bottom: 36px;
+    }
+
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s;
+      cursor: none;
+    }
+
+    .contact-link:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0, 229, 255, .1);
+    }
+
+    .contact-link-icon {
+      font-size: 1.3rem;
+      width: 44px;
+      height: 44px;
+      background: rgba(0, 229, 255, .07);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .contact-link-info {}
+
+    .contact-link-label {
+      font-family: 'Space Mono', monospace;
+      font-size: .65rem;
+      color: var(--muted);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .contact-link-value {
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group label {
+      font-family: 'Space Mono', monospace;
+      font-size: .65rem;
+      color: var(--muted);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      resize: vertical;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 229, 255, .08);
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+    }
+
+    .btn-send {
+      align-self: flex-start;
+      padding: 14px 32px;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: 'Orbitron', sans-serif;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      cursor: none;
+      transition: background .2s, box-shadow .3s;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+
+    .btn-send:hover {
+      background: rgba(0, 229, 255, .1);
+      box-shadow: 0 0 20px rgba(0, 229, 255, .25);
+    }
+
+    /* ──────── FOOTER ──────── */
+    footer {
+      text-align: center;
+      padding: 32px;
+      border-top: 1px solid var(--border);
+      font-family: 'Space Mono', monospace;
+      font-size: .68rem;
+      color: var(--muted);
+      letter-spacing: .12em;
+    }
+
+    footer span {
+      color: var(--accent);
+    }
+
+    /* ──────── SCROLL PROGRESS ──────── */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: linear-gradient(to right, var(--accent2), var(--accent));
+      z-index: 200;
+      width: 0%;
+      transition: width .1s;
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* ──────── ANIMATIONS ──────── */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 229, 255, .4);
+      }
+
+      50% {
+        box-shadow: 0 0 0 16px rgba(0, 229, 255, 0);
+      }
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    /* ──────── TYPING CURSOR ──────── */
+    .typed-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.2em;
+      background: var(--accent);
+      vertical-align: text-bottom;
+      animation: blink 1s infinite;
+      margin-left: 2px;
+    }
+
+    /* ──────── GLITCH ──────── */
+    .glitch {
+      position: relative;
+      display: inline-block;
+    }
+
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: #fff;
+    }
+
+    .glitch::before {
+      text-shadow: -2px 0 var(--accent2);
+      clip: rect(0, 900px, 0, 0);
+      animation: glitch1 4s infinite;
+    }
+
+    .glitch::after {
+      text-shadow: 2px 0 var(--accent);
+      clip: rect(0, 900px, 0, 0);
+      animation: glitch2 4s infinite;
+    }
+
+    @keyframes glitch1 {
+      0% {
+        clip: rect(42px, 9999px, 44px, 0);
+      }
+
+      20% {
+        clip: rect(12px, 9999px, 76px, 0);
+      }
+
+      40% {
+        clip: rect(0, 0, 0, 0);
+      }
+
+      60% {
+        clip: rect(85px, 9999px, 90px, 0);
+      }
+
+      80% {
+        clip: rect(0, 0, 0, 0);
+      }
+
+      100% {
+        clip: rect(0, 0, 0, 0);
+      }
+    }
+
+    @keyframes glitch2 {
+      0% {
+        clip: rect(0, 0, 0, 0);
+      }
+
+      25% {
+        clip: rect(65px, 9999px, 70px, 0);
+      }
+
+      50% {
+        clip: rect(24px, 9999px, 28px, 0);
+      }
+
+      75% {
+        clip: rect(0, 0, 0, 0);
+      }
+
+      100% {
+        clip: rect(0, 0, 0, 0);
+      }
+    }
+
+    /* ──────── RESPONSIVE ──────── */
+    @media(max-width:900px) {
+      .hero-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .hero-left {
+        order: 2;
+      }
+
+      .hero-right {
+        order: 1;
+      }
+
+      .hero-desc {
+        margin: 24px auto;
+      }
+
+      .hero-ctas {
+        justify-content: center;
+      }
+
+      .hero-tag {
+        justify-content: center;
+      }
+
+      .hero-tag::before {
+        display: none;
+      }
+
+      .projects-grid,
+      .contact-grid,
+      .achievements-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .stat-item:nth-child(2) {
+        border-right: none;
+      }
+
+      nav {
+        padding: 16px 24px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      section {
+        padding: 70px 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- Scroll progress -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- Canvas Background -->
+  <canvas id="canvas-bg"></canvas>
+  <div class="noise"></div>
+
+  <div class="wrapper">
+
+    <!-- ── NAV ── -->
+    <nav>
+      <div class="nav-logo">R<span>ITTISH</span><span style="color:var(--muted)">.</span><span
+          style="color:var(--accent2)">G</span></div>
+      <ul class="nav-links">
+        <li><a href="#hero">Home</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#achievements">Awards</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+
+    <!-- ── HERO ── -->
+    <section id="hero">
+      <div class="container">
+        <div class="hero-content">
+          <div class="hero-left">
+            <div class="hero-tag">EEE Engineer &bull; IoT Innovator</div>
+            <h1 class="hero-name">
+              <span class="glitch" data-text="RITTISH">RITTISH</span><br>
+              <span class="accent">G.</span>
+            </h1>
+            <div class="hero-title" id="typedTitle"></div>
+            <p class="hero-desc">
+              3rd Year Electrical & Electronics Engineering student at Sri Eshwar College of Engineering. Building
+              intelligent embedded systems, IoT solutions, and bridging the gap between hardware and software to create
+              tomorrow's automation.
+            </p>
+            <div class="hero-ctas">
+              <a href="#projects" class="btn-primary">↘ View Projects</a>
+              <a href="#contact" class="btn-outline">Get in Touch</a>
+            </div>
+          </div>
+          <div class="hero-right">
+            <div class="avatar-frame">
+              <div class="avatar-bg"></div>
+              <div class="avatar-inner">
+                <div class="avatar-letter">RG</div>
+                <div class="avatar-sublabel">EEE '27 · SECE</div>
+              </div>
+              <div class="orbit-ring">
+                <div class="orbit-dot"></div>
+              </div>
+              <div class="orbit-ring">
+                <div class="orbit-dot2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── STATS ── -->
+    <div class="stats-strip">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-num" data-count="7.84">0</span>
+            <div class="stat-label">Current CGPA</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num" data-count="4">0</span>
+            <div class="stat-label">Major Projects</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num" data-count="5">0</span>
+            <div class="stat-label">Achievements</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num" data-count="2">0</span>
+            <div class="stat-label">Industrial Trainings</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROJECTS ── -->
+    <section id="projects">
+      <div class="container">
+        <div class="section-tag">Featured Work</div>
+        <h2 class="section-title">Engineering <span class="glow">Projects</span></h2>
+        <div class="projects-grid">
+
+          <div class="project-card" style="transition-delay:.1s">
+            <span class="project-num">PROJECT_01</span>
+            <a href="project1_smart_cloud.html" class="project-link">↗</a>
+            <div class="project-title">SMART CLOUD CONTROL</div>
+            <div class="project-subtitle">Embedded Systems &amp; IoT Development</div>
+            <p class="project-desc">Interactive web-dashboard for real-time device monitoring &amp; control. ESP8266
+              WiFi module integrated with sensors for automated device triggering. Firebase backend with ThinkSpeak
+              analytics.</p>
+            <div class="project-tags">
+              <span class="tag">ESP8266</span>
+              <span class="tag">Firebase</span>
+              <span class="tag green">IoT</span>
+              <span class="tag">Embedded C</span>
+              <span class="tag purple">ThinkSpeak</span>
+            </div>
+          </div>
+
+          <div class="project-card" style="transition-delay:.2s">
+            <span class="project-num">PROJECT_02</span>
+            <a href="project2_esp_comm.html" class="project-link">↗</a>
+            <div class="project-title">ESP8266 TWO WAY COMM</div>
+            <div class="project-subtitle">Embedded Systems &amp; Automation</div>
+            <p class="project-desc">Bidirectional communication system between multiple ESP8266 microcontroller boards.
+              Custom data transfer protocol for reliable inter-board communication and autonomous automation control.
+            </p>
+            <div class="project-tags">
+              <span class="tag">ESP8266</span>
+              <span class="tag green">Firmware</span>
+              <span class="tag">Embedded C</span>
+              <span class="tag purple">Automation</span>
+            </div>
+          </div>
+
+          <div class="project-card" style="transition-delay:.3s">
+            <span class="project-num">PROJECT_03</span>
+            <a href="project3_shore_energy.html" class="project-link">↗</a>
+            <div class="project-title">SHORE ENERGY</div>
+            <div class="project-subtitle">Sustainable Energy Development &amp; Mechanical · Team Lead</div>
+            <p class="project-desc">Led cross-functional team designing eco-friendly energy systems. Achieved 60%
+              reduction in energy costs through novel mechanical methods. Integrated real-time sensor monitoring
+              systems.</p>
+            <div class="project-tags">
+              <span class="tag green">Sustainability</span>
+              <span class="tag">Mechanical Design</span>
+              <span class="tag purple">Team Lead</span>
+              <span class="tag">Sensors</span>
+            </div>
+          </div>
+
+          <div class="project-card" style="transition-delay:.4s">
+            <span class="project-num">PROJECT_04</span>
+            <a href="project4_f117.html" class="project-link">↗</a>
+            <div class="project-title">NIGHT HAWACK F-117</div>
+            <div class="project-subtitle">AeroSpace Design &amp; Mechanical Engineering · Designer</div>
+            <p class="project-desc">Engineered RC airplane using MATLAB simulation and Blender CAD modeling. Optimized
+              aeronautical design achieving 30 km/hr top speed with 5 kg payload capacity and autonomous flight control.
+            </p>
+            <div class="project-tags">
+              <span class="tag">MATLAB</span>
+              <span class="tag purple">CAD/Blender</span>
+              <span class="tag">Aerospace</span>
+              <span class="tag green">Payload Design</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SKILLS — HEX CHIP SIGNAL PANEL ── -->
+    <section id="skills">
+      <!-- SVG gradient defs -->
+      <svg width="0" height="0" style="position:absolute">
+        <defs>
+          <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#7c3aed" />
+            <stop offset="40%" stop-color="#00e5ff" />
+            <stop offset="100%" stop-color="#10b981" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <div class="container">
+        <div class="section-tag">Technical Arsenal</div>
+        <h2 class="section-title">Core <span class="glow">Skills</span></h2>
+
+        <div class="skills-panel">
+
+          <!-- ▸ PROGRAMMING -->
+          <div class="skill-category">
+            <div class="skill-cat-header">
+              <div class="skill-cat-icon">⚡</div>
+              <span class="skill-cat-label">Programming</span>
+              <div class="skill-cat-line"></div>
+            </div>
+            <div class="chips-grid">
+              <div class="skill-chip" data-level="5" style="--scan-delay:0s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">⚙</div>
+                  <div class="chip-text">
+                    <span class="chip-name">Embedded C / C++</span>
+                    <span class="chip-sub">Core · Advanced</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 10,20 18,6 26,34 34,8 42,32 50,10 58,30 66,12 74,28 82,14 90,26 98,20 110,20 120,8 130,32 140,10 150,30 160,12 170,28 180,16 190,20 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+
+              <div class="skill-chip" data-level="4" style="--scan-delay:.4s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">🐍</div>
+                  <div class="chip-text">
+                    <span class="chip-name">Python</span>
+                    <span class="chip-sub">Scripting · ML</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 12,20 22,10 32,30 42,12 52,28 62,14 72,26 82,16 92,24 102,20 120,20 132,12 142,28 152,14 162,26 172,18 182,22 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+
+              <div class="skill-chip" data-level="3" style="--scan-delay:.8s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">💻</div>
+                  <div class="chip-text">
+                    <span class="chip-name">Visual Basic</span>
+                    <span class="chip-sub">Desktop · Apps</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 15,20 28,12 40,28 52,14 64,26 76,16 88,24 100,18 112,22 124,20 140,20 155,14 168,26 180,18 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ▸ MICROCONTROLLERS & IoT -->
+          <div class="skill-category">
+            <div class="skill-cat-header">
+              <div class="skill-cat-icon">🔧</div>
+              <span class="skill-cat-label">Microcontrollers & IoT</span>
+              <div class="skill-cat-line"></div>
+            </div>
+            <div class="chips-grid">
+              <div class="skill-chip" data-level="5" style="--scan-delay:.2s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">📡</div>
+                  <div class="chip-text">
+                    <span class="chip-name">ESP32 / ESP8266</span>
+                    <span class="chip-sub">WiFi MCU</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 8,20 16,4 24,36 32,6 40,34 48,8 56,32 64,10 72,30 80,12 88,28 96,14 104,20 116,20 126,6 136,34 146,8 156,32 166,10 176,28 186,16 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+
+              <div class="skill-chip" data-level="5" style="--scan-delay:.6s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">🔌</div>
+                  <div class="chip-text">
+                    <span class="chip-name">Arduino</span>
+                    <span class="chip-sub">Uno / IDE</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 10,20 20,6 30,34 40,8 50,30 60,12 70,28 80,14 90,26 100,20 115,20 128,8 138,32 148,10 158,28 168,14 178,26 188,18 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+
+              <div class="skill-chip" data-level="4" style="--scan-delay:1s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">📶</div>
+                  <div class="chip-text">
+                    <span class="chip-name">Node MCU</span>
+                    <span class="chip-sub">IoT Dev</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 14,20 26,10 38,30 50,12 62,28 74,14 86,26 98,16 110,24 122,20 138,20 150,12 162,28 174,16 186,24 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ▸ AUTOMATION & CONTROL -->
+          <div class="skill-category">
+            <div class="skill-cat-header">
+              <div class="skill-cat-icon">⚙️</div>
+              <span class="skill-cat-label">Automation & Control</span>
+              <div class="skill-cat-line"></div>
+            </div>
+            <div class="chips-grid">
+              <div class="skill-chip" data-level="4" style="--scan-delay:.3s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">🖥</div>
+                  <div class="chip-text">
+                    <span class="chip-name">SCADA Systems</span>
+                    <span class="chip-sub">Industrial</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 12,20 24,10 36,30 48,12 60,28 72,14 84,26 96,16 108,24 120,20 136,20 148,12 160,28 172,16 184,24 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+
+              <div class="skill-chip" data-level="4" style="--scan-delay:.7s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">🔄</div>
+                  <div class="chip-text">
+                    <span class="chip-name">PLC / Ladder Logic</span>
+                    <span class="chip-sub">Control</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 14,20 28,12 42,28 56,14 70,26 84,16 98,24 112,18 126,22 140,20 156,20 170,14 184,26 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+
+              <div class="skill-chip" data-level="3" style="--scan-delay:1.1s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">🎛</div>
+                  <div class="chip-text">
+                    <span class="chip-name">HMI Design</span>
+                    <span class="chip-sub">Interface</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 16,20 32,14 48,26 64,16 80,24 96,18 112,22 128,20 148,20 164,14 180,26 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ▸ CAD & DESIGN TOOLS -->
+          <div class="skill-category">
+            <div class="skill-cat-header">
+              <div class="skill-cat-icon">📐</div>
+              <span class="skill-cat-label">CAD & Design Tools</span>
+              <div class="skill-cat-line"></div>
+            </div>
+            <div class="chips-grid">
+              <div class="skill-chip" data-level="4" style="--scan-delay:.5s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">📊</div>
+                  <div class="chip-text">
+                    <span class="chip-name">MATLAB</span>
+                    <span class="chip-sub">Simulation</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 14,20 26,10 38,30 50,12 62,28 74,14 86,26 98,16 110,24 122,20 140,20 154,12 168,28 182,18 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+
+              <div class="skill-chip" data-level="4" style="--scan-delay:.9s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">🧊</div>
+                  <div class="chip-text">
+                    <span class="chip-name">Blender / CAD</span>
+                    <span class="chip-sub">3D Design</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 14,20 28,12 42,28 56,14 70,26 84,16 98,24 112,18 126,22 140,20 156,20 170,14 184,26 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+
+              <div class="skill-chip" data-level="4" style="--scan-delay:1.3s">
+                <div class="chip-corner tl"></div>
+                <div class="chip-corner tr"></div>
+                <div class="chip-corner bl"></div>
+                <div class="chip-corner br"></div>
+                <div class="chip-status"></div>
+                <div class="chip-header">
+                  <div class="chip-icon-hex">☁</div>
+                  <div class="chip-text">
+                    <span class="chip-name">Firebase / Blynk</span>
+                    <span class="chip-sub">Cloud / IoT</span>
+                  </div>
+                </div>
+                <svg class="chip-wave" viewBox="0 0 200 40" preserveAspectRatio="none">
+                  <line class="wave-base" x1="0" y1="20" x2="200" y2="20" />
+                  <polyline class="wave-line"
+                    points="0,20 12,20 24,10 36,30 48,12 60,28 72,14 84,26 96,16 108,24 120,20 138,20 152,12 166,28 180,16 200,20" />
+                </svg>
+                <div class="chip-level"></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /skills-panel -->
+      </div>
+    </section>
+
+    <!-- ── EXPERIENCE ── -->
+    <section id="experience">
+      <div class="container">
+        <div class="section-tag">Industrial Exposure</div>
+        <h2 class="section-title">Training & <span class="glow">Experience</span></h2>
+        <div class="timeline">
+
+          <div class="timeline-item">
+            <div class="timeline-dot" style="animation:pulse 2s infinite;"></div>
+            <div class="timeline-date">2023 – 2027</div>
+            <div class="timeline-title">B.E — Electrical & Electronics Engineering</div>
+            <div class="timeline-org">Sri Eshwar College of Engineering · CGPA: 7.84 (5th Sem)</div>
+            <div class="timeline-body">Pursuing core EEE with specialization in embedded systems, IoT, automation, and
+              power systems. Active in hackathons, design competitions, and research projects.</div>
+            <div class="timeline-badges">
+              <span class="tag">EEE</span><span class="tag green">Active</span>
+            </div>
+          </div>
+
+          <div class="timeline-item" style="transition-delay:.1s">
+            <div class="timeline-dot" style="border-color:var(--accent3);box-shadow:0 0 12px rgba(16,185,129,.5);">
+            </div>
+            <div class="timeline-date">2025 · Certificate Awarded</div>
+            <div class="timeline-title">Industrial Automation & Electrical Maintenance</div>
+            <div class="timeline-org">TNEB — Tamil Nadu Electricity Board</div>
+            <div class="timeline-body">Hands-on experience with power distribution infrastructure, SCADA systems,
+              protective relays, distribution transformer testing, metering systems, and electrical safety protocols
+              used in utility-grade power networks.</div>
+            <div class="timeline-badges">
+              <span class="tag">SCADA</span><span class="tag purple">Relay Protection</span><span class="tag">Electrical
+                Safety</span><span class="tag green">Power Systems</span>
+            </div>
+          </div>
+
+          <div class="timeline-item" style="transition-delay:.2s">
+            <div class="timeline-dot" style="border-color:var(--accent2);box-shadow:0 0 12px rgba(124,58,237,.5);">
+            </div>
+            <div class="timeline-date">2024 · Certificate Awarded</div>
+            <div class="timeline-title">Power Plant Operations & Maintenance Training</div>
+            <div class="timeline-org">TTPS — Tuticorin Thermal Power Plant</div>
+            <div class="timeline-body">Studied thermal power generation processes, boiler operations, cooling systems,
+              and preventive maintenance strategies. Gained deep exposure to mechanical systems and safety systems in
+              large-scale industrial environments.</div>
+            <div class="timeline-badges">
+              <span class="tag">Thermal Systems</span><span class="tag purple">Preventive Maintenance</span><span
+                class="tag green">Power Generation</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ACHIEVEMENTS ── -->
+    <section id="achievements" style="background:var(--surface)">
+      <div class="container">
+        <div class="section-tag">Recognition</div>
+        <h2 class="section-title">Awards & <span class="glow">Achievements</span></h2>
+        <div class="achievements-grid">
+
+          <div class="ach-card">
+            <span class="ach-icon">🏆</span>
+            <div class="ach-title">Makers Arena Winner</div>
+            <div class="ach-desc">Won 24-Hour Hackathon at AIC Raise 2025. Demonstrated Engineering Design, System
+              Integration, and Embedded C proficiency.</div>
+            <span class="ach-badge">AIC Raise 2025</span>
+          </div>
+
+          <div class="ach-card" style="transition-delay:.1s">
+            <span class="ach-icon">🚀</span>
+            <div class="ach-title">NASA Global Nominee</div>
+            <div class="ach-desc">Global Nominee in NASA Space Apps Challenge 2025 for IoT/IIoT and Smart Energy Systems
+              project.</div>
+            <span class="ach-badge">NASA 2025</span>
+          </div>
+
+          <div class="ach-card" style="transition-delay:.2s">
+            <span class="ach-icon">⚡</span>
+            <div class="ach-title">Cipher Thon — Top 5</div>
+            <div class="ach-desc">Top 5 Finalist out of 1500 participants in National Level Cipher Thon (2023).
+              Showcased problem-solving and system integration skills.</div>
+            <span class="ach-badge">Top 5 / 1500</span>
+          </div>
+
+          <div class="ach-card" style="transition-delay:.3s">
+            <span class="ach-icon">✈️</span>
+            <div class="ach-title">IIT Shastra Finalist</div>
+            <div class="ach-desc">Top 30 Finalist in IIT Shastra Drone Modelling Competition (2023). Applied Mechanical
+              Design, Payload Design, and Aeronautical Engineering.</div>
+            <span class="ach-badge">Top 30 · IIT</span>
+          </div>
+
+          <div class="ach-card" style="transition-delay:.4s">
+            <span class="ach-icon">🤖</span>
+            <div class="ach-title">Garuda National Hackathon</div>
+            <div class="ach-desc">Participant in Garuda National Hackathon (CAPE). National-level competition showcasing
+              Automation Systems and Mechanical Design expertise.</div>
+            <span class="ach-badge">National Level</span>
+          </div>
+
+          <div class="ach-card" style="transition-delay:.5s">
+            <span class="ach-icon">📚</span>
+            <div class="ach-title">Academic Excellence</div>
+            <div class="ach-desc">HSC 92% · SSLC 90% — Consistent academic performance leading into engineering with a
+              7.84 CGPA through 5th semester.</div>
+            <span class="ach-badge">CGPA 7.84</span>
+          </div>
+
+        </div>
+
+        <!-- Achievement Images Slider -->
+        <div class="ach-slider-section">
+          <div class="ach-slider-label">📷 Highlights Gallery</div>
+          <div class="ach-slider-track" id="achSliderTrack">
+            <!-- Set 1 -->
+            <div class="ach-slide">
+              <img src="img/img-1.png" alt="Achievement 1" loading="lazy" />
+              <div class="ach-slide-overlay"><span>Achievement Highlight</span></div>
+            </div>
+            <div class="ach-slide">
+              <img src="img/img-2.png" alt="Achievement 2" loading="lazy" />
+              <div class="ach-slide-overlay"><span>Achievement Highlight</span></div>
+            </div>
+            <div class="ach-slide">
+              <img src="img/img-3.png" alt="Achievement 3" loading="lazy" />
+              <div class="ach-slide-overlay"><span>Achievement Highlight</span></div>
+            </div>
+            <div class="ach-slide">
+              <img src="img/img-4.png" alt="Achievement 4" loading="lazy" />
+              <div class="ach-slide-overlay"><span>Achievement Highlight</span></div>
+            </div>
+            <!-- Set 2 (duplicate for seamless loop) -->
+            <div class="ach-slide">
+              <img src="img/img-1.png" alt="Achievement 1" loading="lazy" />
+              <div class="ach-slide-overlay"><span>Achievement Highlight</span></div>
+            </div>
+            <div class="ach-slide">
+              <img src="img/img-2.png" alt="Achievement 2" loading="lazy" />
+              <div class="ach-slide-overlay"><span>Achievement Highlight</span></div>
+            </div>
+            <div class="ach-slide">
+              <img src="img/img-3.png" alt="Achievement 3" loading="lazy" />
+              <div class="ach-slide-overlay"><span>Achievement Highlight</span></div>
+            </div>
+            <div class="ach-slide">
+              <img src="img/img-4.png" alt="Achievement 4" loading="lazy" />
+              <div class="ach-slide-overlay"><span>Achievement Highlight</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── CONTACT ── -->
+    <section id="contact">
+      <div class="container">
+        <div class="section-tag">Let's Connect</div>
+        <h2 class="section-title">Get in <span class="glow">Touch</span></h2>
+        <div class="contact-grid">
+          <div class="contact-info">
+            <h3>Open to Opportunities</h3>
+            <p>I'm always excited to connect with fellow engineers, collaborate on innovative projects, or explore
+              internship and research opportunities in embedded systems, IoT, and industrial automation.</p>
+            <div class="contact-links">
+              <a href="mailto:rittish.g2023eee@sece.ac.in" class="contact-link">
+                <div class="contact-link-icon">✉</div>
+                <div class="contact-link-info">
+                  <div class="contact-link-label">Email</div>
+                  <div class="contact-link-value">rittish.g2023eee@sece.ac.in</div>
+                </div>
+              </a>
+              <a href="https://www.linkedin.com/in/rittishg/" target="_blank" class="contact-link">
+                <div class="contact-link-icon">in</div>
+                <div class="contact-link-info">
+                  <div class="contact-link-label">LinkedIn</div>
+                  <div class="contact-link-value">linkedin.com/in/rittishg</div>
+                </div>
+              </a>
+              <a href="https://github.com/" target="_blank" class="contact-link">
+                <div class="contact-link-icon" style="font-family:monospace;font-size:.9rem;">&lt;/&gt;</div>
+                <div class="contact-link-info">
+                  <div class="contact-link-label">GitHub</div>
+                  <div class="contact-link-value">github.com/rittishg</div>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div>
+            <form class="contact-form" onsubmit="handleSubmit(event)">
+              <div class="form-group">
+                <label>Your Name</label>
+                <input type="text" placeholder="John Doe" required />
+              </div>
+              <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" placeholder="john@example.com" required />
+              </div>
+              <div class="form-group">
+                <label>Message</label>
+                <textarea placeholder="Your message here..." required></textarea>
+              </div>
+              <button type="submit" class="btn-send">⟶ Send Message</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FOOTER ── -->
+    <footer>
+      Designed &amp; Built with precision by <span>Rittish G</span> · EEE '27 · Sri Eshwar College of Engineering
+      <br><span style="color:var(--muted);font-size:.6rem;letter-spacing:.1em;display:block;margin-top:6px;">Embedded
+        Systems · IoT · Industrial Automation · Aerospace</span>
+    </footer>
+
+  </div><!-- /wrapper -->
+
+  <script>
+    /* ────────────────────────────────
+       CURSOR
+    ──────────────────────────────── */
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+    });
+    function animRing() {
+      rx += (mx - rx) * .12; ry += (my - ry) * .12;
+      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      requestAnimationFrame(animRing);
+    }
+    animRing();
+
+    /* ────────────────────────────────
+       CANVAS — CIRCUIT / PARTICLE BG
+    ──────────────────────────────── */
+    const canvas = document.getElementById('canvas-bg');
+    const ctx = canvas.getContext('2d');
+    let W, H, nodes = [];
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Node {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.vx = (Math.random() - .5) * .3;
+        this.vy = (Math.random() - .5) * .3;
+        this.r = Math.random() * 1.5 + .5;
+        this.alpha = Math.random() * .6 + .2;
+      }
+      update() {
+        this.x += this.vx; this.y += this.vy;
+        if (this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,229,255,${this.alpha})`;
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 90; i++) nodes.push(new Node());
+
+    function drawCircuit() {
+      ctx.clearRect(0, 0, W, H);
+      nodes.forEach(n => n.update());
+      // lines
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 140) {
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            const alpha = (1 - d / 140) * .25;
+            ctx.strokeStyle = `rgba(0,229,255,${alpha})`;
+            ctx.lineWidth = .5;
+            ctx.stroke();
+          }
+        }
+      }
+      nodes.forEach(n => n.draw());
+      requestAnimationFrame(drawCircuit);
+    }
+    drawCircuit();
+
+    /* ────────────────────────────────
+       SCROLL PROGRESS
+    ──────────────────────────────── */
+    const prog = document.getElementById('scrollProgress');
+    window.addEventListener('scroll', () => {
+      const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+      prog.style.width = pct + '%';
+    });
+
+    /* ────────────────────────────────
+       INTERSECTION OBSERVER
+    ──────────────────────────────── */
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          // counters
+          e.target.querySelectorAll('[data-count]').forEach(el => {
+            const target = parseFloat(el.dataset.count);
+            const dec = target % 1 !== 0;
+            let current = 0;
+            const step = target / 60;
+            const timer = setInterval(() => {
+              current += step;
+              if (current >= target) { current = target; clearInterval(timer); }
+              el.textContent = dec ? current.toFixed(2) : Math.floor(current);
+            }, 16);
+          });
+        }
+      });
+    }, { threshold: .15 });
+
+    document.querySelectorAll('.project-card,.timeline-item,.ach-card,.stat-item,.skill-category').forEach(el => io.observe(el));
+
+    /* ────────────────────────────────
+       SKILL CHIP LEVEL SEGMENTS
+    ──────────────────────────────── */
+    const chipIO = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          const lvl = parseInt(e.target.dataset.level) || 0;
+          const container = e.target.querySelector('.chip-level');
+          if (container && container.children.length === 0) {
+            const total = 5;
+            for (let i = 0; i < total; i++) {
+              const seg = document.createElement('div');
+              seg.className = 'level-seg';
+              if (i < lvl) {
+                seg.classList.add('active');
+                if (i >= 3) seg.classList.add('high');
+                else if (i >= 2) seg.classList.add('mid');
+              }
+              // stagger animation
+              seg.style.transitionDelay = (i * 0.12) + 's';
+              container.appendChild(seg);
+            }
+            // trigger the active styles after a frame
+            requestAnimationFrame(() => {
+              container.querySelectorAll('.level-seg').forEach(s => s.style.opacity = '1');
+            });
+          }
+          chipIO.unobserve(e.target);
+        }
+      });
+    }, { threshold: .2 });
+    document.querySelectorAll('.skill-chip').forEach(el => chipIO.observe(el));
+
+    /* ────────────────────────────────
+       TYPED TITLE
+    ──────────────────────────────── */
+    const titles = [
+      'Embedded Systems Engineer',
+      'IoT Solutions Developer',
+      'Industrial Automation',
+      'Aerospace Design Enthusiast',
+      'Smart Energy Innovator'
+    ];
+    const titleEl = document.getElementById('typedTitle');
+    let ti = 0, ci = 0, deleting = false;
+    function type() {
+      const full = titles[ti];
+      if (!deleting) {
+        ci++;
+        titleEl.innerHTML = full.slice(0, ci) + '<span class="typed-cursor"></span>';
+        if (ci === full.length) { deleting = true; setTimeout(type, 1800); return; }
+        setTimeout(type, 65);
+      } else {
+        ci--;
+        titleEl.innerHTML = full.slice(0, ci) + '<span class="typed-cursor"></span>';
+        if (ci === 0) { deleting = false; ti = (ti + 1) % titles.length; setTimeout(type, 400); return; }
+        setTimeout(type, 35);
+      }
+    }
+    setTimeout(type, 1500);
+
+    /* ────────────────────────────────
+       FORM SUBMIT
+    ──────────────────────────────── */
+    function handleSubmit(e) {
+      e.preventDefault();
+      const btn = e.target.querySelector('.btn-send');
+      btn.textContent = '✓ Sent!';
+      btn.style.color = 'var(--accent3)';
+      btn.style.borderColor = 'var(--accent3)';
+      setTimeout(() => {
+        btn.textContent = '⟶ Send Message';
+        btn.style.color = ''; btn.style.borderColor = '';
+        e.target.reset();
+      }, 3000);
+    }
+
+    /* ────────────────────────────────
+       NAV ACTIVE ON SCROLL
+    ──────────────────────────────── */
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-links a');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 200) current = s.id;
+      });
+      navLinks.forEach(a => {
+        a.style.color = a.getAttribute('href') === '#' + current ? 'var(--accent)' : '';
+      });
+    });
+  </script>
+</body>
+
+</html>
