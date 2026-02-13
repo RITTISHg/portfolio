@@ -2269,18 +2269,18 @@
             </div>
           </div>
           <div>
-            <form class="contact-form" onsubmit="handleSubmit(event)">
+            <form class="contact-form" id="contact-form" onsubmit="handleSubmit(event)">
               <div class="form-group">
                 <label>Your Name</label>
-                <input type="text" placeholder="John Doe" required />
+                <input type="text" name="from_name" placeholder="John Doe" required />
               </div>
               <div class="form-group">
                 <label>Email Address</label>
-                <input type="email" placeholder="john@example.com" required />
+                <input type="email" name="from_email" placeholder="john@example.com" required />
               </div>
               <div class="form-group">
                 <label>Message</label>
-                <textarea placeholder="Your message here..." required></textarea>
+                <textarea name="message" placeholder="Your message here..." required></textarea>
               </div>
               <button type="submit" class="btn-send">⟶ Send Message</button>
             </form>
@@ -2297,6 +2297,13 @@
     </footer>
 
   </div><!-- /wrapper -->
+
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    // Initialize EmailJS with your public key
+    emailjs.init('zthpelV1k5lIP5d_Z');
+  </script>
 
   <script>
     /* ────────────────────────────────
@@ -2481,14 +2488,41 @@
     function handleSubmit(e) {
       e.preventDefault();
       const btn = e.target.querySelector('.btn-send');
-      btn.textContent = '✓ Sent!';
-      btn.style.color = 'var(--accent3)';
-      btn.style.borderColor = 'var(--accent3)';
-      setTimeout(() => {
-        btn.textContent = '⟶ Send Message';
-        btn.style.color = ''; btn.style.borderColor = '';
-        e.target.reset();
-      }, 3000);
+      const originalText = btn.textContent;
+
+      // Disable button and show sending state
+      btn.disabled = true;
+      btn.textContent = '⟶ Sending...';
+      btn.style.opacity = '.6';
+
+      // Send email via EmailJS
+      emailjs.sendForm('service_f6l60ch', 'template_w2qhpp', e.target)
+        .then(() => {
+          // Success
+          btn.textContent = '✓ Message Sent!';
+          btn.style.color = 'var(--accent3)';
+          btn.style.borderColor = 'var(--accent3)';
+          btn.style.opacity = '1';
+          e.target.reset();
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.color = ''; btn.style.borderColor = '';
+            btn.disabled = false;
+          }, 4000);
+        })
+        .catch((error) => {
+          // Error
+          console.error('EmailJS Error:', error);
+          btn.textContent = '✗ Failed — Try Again';
+          btn.style.color = '#ef4444';
+          btn.style.borderColor = '#ef4444';
+          btn.style.opacity = '1';
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.color = ''; btn.style.borderColor = '';
+            btn.disabled = false;
+          }, 4000);
+        });
     }
 
     /* ────────────────────────────────
