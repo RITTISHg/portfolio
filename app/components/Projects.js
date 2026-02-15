@@ -2,6 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import Link from "next/link";
 
 const projects = [
     {
@@ -16,7 +17,7 @@ const projects = [
             { label: "Embedded C", color: "accent" },
             { label: "ThinkSpeak", color: "accent2" },
         ],
-        link: "#",
+        slug: "smart-cloud-control",
     },
     {
         num: "02",
@@ -29,7 +30,7 @@ const projects = [
             { label: "Embedded C", color: "accent" },
             { label: "Automation", color: "accent2" },
         ],
-        link: "#",
+        slug: "esp8266-two-way-comm",
     },
     {
         num: "03",
@@ -42,7 +43,7 @@ const projects = [
             { label: "Team Lead", color: "accent2" },
             { label: "Sensors", color: "accent" },
         ],
-        link: "#",
+        slug: "shore-energy",
     },
     {
         num: "04",
@@ -55,7 +56,7 @@ const projects = [
             { label: "Aerospace", color: "accent" },
             { label: "Payload Design", color: "accent3" },
         ],
-        link: "#",
+        slug: "night-hawack-f117",
     },
 ];
 
@@ -82,57 +83,59 @@ function ProjectCard({ project, index }) {
     const inView = useInView(ref, { once: true, margin: "-80px" });
 
     return (
-        <motion.div
-            ref={ref}
-            initial={{ opacity: 0, y: 40 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: index * 0.1, ease: [0.4, 0, 0.2, 1] }}
-            className="bento-card group p-6 md:p-8 relative"
-        >
-            {/* Spotlight glow on hover */}
-            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-[radial-gradient(circle_at_var(--mouse-x,50%)_var(--mouse-y,50%),rgba(0,229,255,0.06),transparent_60%)]" />
+        <Link href={`/projects/${project.slug}`}>
+            <motion.div
+                ref={ref}
+                initial={{ opacity: 0, y: 40 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.1, ease: [0.4, 0, 0.2, 1] }}
+                className="bento-card group p-6 md:p-8 relative cursor-pointer"
+            >
+                {/* Spotlight glow on hover */}
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-[radial-gradient(circle_at_var(--mouse-x,50%)_var(--mouse-y,50%),rgba(0,229,255,0.06),transparent_60%)]" />
 
-            <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] tracking-[0.2em] text-[var(--muted)] uppercase">
-                        PROJECT_{project.num}
-                    </span>
-                    <span className="text-[var(--accent)] text-lg opacity-30 group-hover:opacity-100 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all duration-300">
-                        ↗
-                    </span>
+                <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-4">
+                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] tracking-[0.2em] text-[var(--muted)] uppercase">
+                            PROJECT_{project.num}
+                        </span>
+                        <span className="text-[var(--accent)] text-lg opacity-30 group-hover:opacity-100 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all duration-300">
+                            ↗
+                        </span>
+                    </div>
+
+                    <h3 className="font-[family-name:var(--font-orbitron)] font-bold text-base md:text-lg text-white mb-1 tracking-wide">
+                        {project.title}
+                    </h3>
+                    <p className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] tracking-[0.12em] text-[var(--accent2)] uppercase mb-4">
+                        {project.subtitle}
+                    </p>
+
+                    <p className="text-[var(--muted)] text-sm leading-relaxed mb-6">
+                        {project.desc}
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                        {project.tags.map((tag) => {
+                            const c = tagColors[tag.color];
+                            return (
+                                <span
+                                    key={tag.label}
+                                    className="tag-chip"
+                                    style={{
+                                        background: c.bg,
+                                        borderColor: c.border,
+                                        color: c.text,
+                                    }}
+                                >
+                                    {tag.label}
+                                </span>
+                            );
+                        })}
+                    </div>
                 </div>
-
-                <h3 className="font-[family-name:var(--font-orbitron)] font-bold text-base md:text-lg text-white mb-1 tracking-wide">
-                    {project.title}
-                </h3>
-                <p className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] tracking-[0.12em] text-[var(--accent2)] uppercase mb-4">
-                    {project.subtitle}
-                </p>
-
-                <p className="text-[var(--muted)] text-sm leading-relaxed mb-6">
-                    {project.desc}
-                </p>
-
-                <div className="flex flex-wrap gap-2">
-                    {project.tags.map((tag) => {
-                        const c = tagColors[tag.color];
-                        return (
-                            <span
-                                key={tag.label}
-                                className="tag-chip"
-                                style={{
-                                    background: c.bg,
-                                    borderColor: c.border,
-                                    color: c.text,
-                                }}
-                            >
-                                {tag.label}
-                            </span>
-                        );
-                    })}
-                </div>
-            </div>
-        </motion.div>
+            </motion.div>
+        </Link>
     );
 }
 
