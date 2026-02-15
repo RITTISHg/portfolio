@@ -11,6 +11,7 @@ import Achievements from "./components/Achievements";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import ScrollProgress from "./components/ScrollProgress";
+import AiChat from "./components/AiChat";
 
 const CustomCursor = dynamic(() => import("./components/CustomCursor"), {
   ssr: false,
@@ -41,6 +42,7 @@ export default function Home() {
       <div className="section-divider" />
       <Contact />
       <Footer />
+      <AiChat />
     </main>
   );
 }
