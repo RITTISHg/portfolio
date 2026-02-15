@@ -3,56 +3,64 @@
    Premium Animations & Interactions
    ═══════════════════════════════════════════ */
 
+/* ── DEVICE DETECTION ── */
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+const isSmallScreen = window.innerWidth <= 600;
+
 /* ── PRELOADER ── */
 window.addEventListener('load', () => {
     setTimeout(() => {
         document.querySelector('.preloader').classList.add('hidden');
-    }, 1200);
+    }, isMobile ? 600 : 1200);
 });
 
-/* ── CURSOR ── */
+/* ── CURSOR (Desktop only) ── */
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursorRing');
 let mx = 0, my = 0, rx = 0, ry = 0;
-const trails = [];
-const TRAIL_COUNT = 8;
 
-for (let i = 0; i < TRAIL_COUNT; i++) {
-    const t = document.createElement('div');
-    t.className = 'cursor-trail';
-    document.body.appendChild(t);
-    trails.push({ el: t, x: 0, y: 0 });
-}
+if (!isMobile) {
+    const trails = [];
+    const TRAIL_COUNT = 8;
 
-document.addEventListener('mousemove', e => {
-    mx = e.clientX; my = e.clientY;
-    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
-});
+    for (let i = 0; i < TRAIL_COUNT; i++) {
+        const t = document.createElement('div');
+        t.className = 'cursor-trail';
+        document.body.appendChild(t);
+        trails.push({ el: t, x: 0, y: 0 });
+    }
 
-function animCursor() {
-    rx += (mx - rx) * .12; ry += (my - ry) * .12;
-    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
-
-    trails.forEach((t, i) => {
-        const prev = i === 0 ? { x: mx, y: my } : trails[i - 1];
-        t.x += (prev.x - t.x) * (0.3 - i * 0.025);
-        t.y += (prev.y - t.y) * (0.3 - i * 0.025);
-        t.el.style.left = t.x + 'px';
-        t.el.style.top = t.y + 'px';
-        t.el.style.opacity = (1 - i / TRAIL_COUNT) * 0.4;
-        t.el.style.width = (4 - i * 0.3) + 'px';
-        t.el.style.height = (4 - i * 0.3) + 'px';
+    document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
     });
 
-    requestAnimationFrame(animCursor);
-}
-animCursor();
+    function animCursor() {
+        rx += (mx - rx) * .12; ry += (my - ry) * .12;
+        ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
 
-// Hover effect on interactive elements
-document.querySelectorAll('a, button, .project-card, .skill-chip, .ach-card, .contact-link').forEach(el => {
-    el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
-    el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
-});
+        trails.forEach((t, i) => {
+            const prev = i === 0 ? { x: mx, y: my } : trails[i - 1];
+            t.x += (prev.x - t.x) * (0.3 - i * 0.025);
+            t.y += (prev.y - t.y) * (0.3 - i * 0.025);
+            t.el.style.left = t.x + 'px';
+            t.el.style.top = t.y + 'px';
+            t.el.style.opacity = (1 - i / TRAIL_COUNT) * 0.4;
+            t.el.style.width = (4 - i * 0.3) + 'px';
+            t.el.style.height = (4 - i * 0.3) + 'px';
+        });
+
+        requestAnimationFrame(animCursor);
+    }
+    animCursor();
+
+    // Hover effect on interactive elements
+    document.querySelectorAll('a, button, .project-card, .skill-chip, .ach-card, .contact-link').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+    });
+}
 
 /* ── CANVAS PARTICLE NETWORK ── */
 const canvas = document.getElementById('canvas-bg');
@@ -103,7 +111,9 @@ class Node {
     }
 }
 
-const nodeCount = Math.min(120, Math.floor(W * H / 12000));
+const nodeCount = isMobile
+    ? Math.min(40, Math.floor(W * H / 25000))  // Fewer particles on mobile
+    : Math.min(120, Math.floor(W * H / 12000));
 for (let i = 0; i < nodeCount; i++) nodes.push(new Node());
 
 function drawNetwork() {
@@ -149,7 +159,7 @@ function createSparkle() {
     sparklesContainer.appendChild(s);
     setTimeout(() => s.remove(), 8000);
 }
-setInterval(createSparkle, 300);
+setInterval(createSparkle, isMobile ? 800 : 300); // Slower sparkles on mobile for performance
 
 /* ── SCROLL PROGRESS ── */
 const prog = document.getElementById('scrollProgress');
@@ -169,13 +179,16 @@ const menuToggle = document.querySelector('.menu-toggle');
 const navLinks = document.querySelector('.nav-links');
 if (menuToggle) {
     menuToggle.addEventListener('click', () => {
-        menuToggle.classList.toggle('open');
+        const isOpen = menuToggle.classList.toggle('open');
         navLinks.classList.toggle('open');
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = isOpen ? 'hidden' : '';
     });
     navLinks.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', () => {
             menuToggle.classList.remove('open');
             navLinks.classList.remove('open');
+            document.body.style.overflow = '';
         });
     });
 }
@@ -267,29 +280,32 @@ function type() {
 }
 setTimeout(type, 2000);
 
-/* ── CARD MOUSE TRACKING (Spotlight Effect) ── */
-document.querySelectorAll('.project-card').forEach(card => {
-    card.addEventListener('mousemove', e => {
-        const rect = card.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-        const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-        card.style.setProperty('--mouse-x', x + '%');
-        card.style.setProperty('--mouse-y', y + '%');
+/* ── CARD MOUSE TRACKING & TILT (Desktop only) ── */
+if (!isMobile) {
+    // Spotlight effect on project cards
+    document.querySelectorAll('.project-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+            const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+            card.style.setProperty('--mouse-x', x + '%');
+            card.style.setProperty('--mouse-y', y + '%');
+        });
     });
-});
 
-/* ── TILT EFFECT ON CARDS ── */
-document.querySelectorAll('.ach-card, .skill-chip').forEach(card => {
-    card.addEventListener('mousemove', e => {
-        const rect = card.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width - 0.5;
-        const y = (e.clientY - rect.top) / rect.height - 0.5;
-        card.style.transform = `perspective(600px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) translateY(-4px) scale(1.02)`;
+    // 3D tilt on achievement & skill cards
+    document.querySelectorAll('.ach-card, .skill-chip').forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            card.style.transform = `perspective(600px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) translateY(-4px) scale(1.02)`;
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = '';
+        });
     });
-    card.addEventListener('mouseleave', () => {
-        card.style.transform = '';
-    });
-});
+}
 
 /* ── FORM SUBMIT ── */
 function handleSubmit(e) {
@@ -351,15 +367,17 @@ window.addEventListener('scroll', () => {
     if (aurora) aurora.style.transform = `translateY(${scrolled * 0.1}px)`;
 });
 
-/* ── MAGNETIC BUTTONS ── */
-document.querySelectorAll('.btn-primary, .btn-outline').forEach(btn => {
-    btn.addEventListener('mousemove', e => {
-        const rect = btn.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+/* ── MAGNETIC BUTTONS (Desktop only) ── */
+if (!isMobile) {
+    document.querySelectorAll('.btn-primary, .btn-outline').forEach(btn => {
+        btn.addEventListener('mousemove', e => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+        });
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = '';
+        });
     });
-    btn.addEventListener('mouseleave', () => {
-        btn.style.transform = '';
-    });
-});
+}
