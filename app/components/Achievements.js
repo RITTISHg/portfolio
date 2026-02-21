@@ -14,10 +14,10 @@ const achievements = [
 ];
 
 const images = [
-    { src: "/img/img-1.png", alt: "Achievement 1" },
-    { src: "/img/img-2.png", alt: "Achievement 2" },
-    { src: "/img/img-3.png", alt: "Achievement 3" },
-    { src: "/img/img-4.png", alt: "Achievement 4" },
+    { src: "/img/highlights/img-1.png", alt: "Hackathon Win" },
+    { src: "/img/highlights/img-2.png", alt: "NASA Challenge" },
+    { src: "/img/highlights/img-3.png", alt: "Project Demo" },
+    { src: "/img/highlights/img-4.png", alt: "Award Ceremony" },
 ];
 
 function AchCard({ ach, index }) {
@@ -65,8 +65,32 @@ export default function Achievements() {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-100px" });
 
+    /* Each card is ~360px (340 + 20 gap). 4 images = 1440px per set. We duplicate 2x. */
+    const scrollSet = [...images, ...images];
+
     return (
         <section id="achievements" className="py-24 md:py-32 relative bg-[var(--surface)]">
+            <style jsx>{`
+                @keyframes gallery-scroll {
+                    0% {
+                        transform: translateX(0);
+                    }
+                    100% {
+                        transform: translateX(-50%);
+                    }
+                }
+                .gallery-track {
+                    display: flex;
+                    gap: 1.25rem;
+                    width: max-content;
+                    animation: gallery-scroll 40s linear infinite;
+                    will-change: transform;
+                }
+                .gallery-track:hover {
+                    animation-play-state: paused;
+                }
+            `}</style>
+
             <div className="max-w-7xl mx-auto px-6" ref={ref}>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -90,7 +114,7 @@ export default function Achievements() {
                     ))}
                 </div>
 
-                {/* Image Gallery — Infinite Scroll */}
+                {/* Image Gallery — Slow Smooth Infinite Scroll */}
                 <div className="relative overflow-hidden py-6">
                     <div className="text-center mb-6">
                         <span className="font-[family-name:var(--font-jetbrains)] text-[0.68rem] tracking-[0.2em] uppercase text-[var(--accent)]">
@@ -103,13 +127,8 @@ export default function Achievements() {
                         <div className="absolute left-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-r from-[var(--surface)] to-transparent z-10 pointer-events-none" />
                         <div className="absolute right-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-l from-[var(--surface)] to-transparent z-10 pointer-events-none" />
 
-                        <motion.div
-                            animate={{ x: [0, -50 * images.length * 2 + "%"] }}
-                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                            className="flex gap-5"
-                            style={{ width: "max-content" }}
-                        >
-                            {[...images, ...images, ...images, ...images].map((img, i) => (
+                        <div className="gallery-track">
+                            {scrollSet.map((img, i) => (
                                 <div
                                     key={i}
                                     className="shrink-0 w-[280px] md:w-[340px] h-[180px] md:h-[220px] rounded-xl overflow-hidden border border-[var(--border)] group relative"
@@ -119,16 +138,16 @@ export default function Achievements() {
                                         alt={img.alt}
                                         fill
                                         sizes="340px"
-                                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                        className="object-cover group-hover:scale-105 transition-transform duration-700"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(5,10,18,0.85)] via-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(5,10,18,0.85)] via-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-4">
                                         <span className="font-[family-name:var(--font-orbitron)] text-[0.68rem] font-bold tracking-wider text-[var(--accent)]">
                                             {img.alt}
                                         </span>
                                     </div>
                                 </div>
                             ))}
-                        </motion.div>
+                        </div>
                     </div>
                 </div>
             </div>
