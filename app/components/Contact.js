@@ -4,6 +4,8 @@ import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 
+emailjs.init({ publicKey: "zthpelV1k5lIP5d_Z" });
+
 const contactLinks = [
     {
         icon: "✉",
@@ -40,7 +42,7 @@ export default function Contact() {
                 "service_f6l60ch",
                 "template_w2qhpp",
                 formRef.current,
-                "zthpelV1k5lIP5d_Z"
+                { publicKey: "zthpelV1k5lIP5d_Z" }
             );
             setStatus("sent");
             formRef.current.reset();
@@ -165,10 +167,10 @@ export default function Contact() {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 className={`w-full sm:w-auto self-start px-8 py-3.5 text-xs font-[family-name:var(--font-orbitron)] font-bold tracking-[0.2em] uppercase rounded-lg border transition-all duration-300 ${status === "sent"
-                                        ? "border-[var(--accent3)] text-[var(--accent3)] bg-[rgba(16,185,129,0.08)]"
-                                        : status === "error"
-                                            ? "border-red-500 text-red-400 bg-[rgba(255,0,0,0.06)]"
-                                            : "border-[var(--accent)] text-[var(--accent)] hover:bg-[rgba(0,229,255,0.08)] hover:shadow-[0_0_30px_rgba(0,229,255,0.15)]"
+                                    ? "border-[var(--accent3)] text-[var(--accent3)] bg-[rgba(16,185,129,0.08)]"
+                                    : status === "error"
+                                        ? "border-red-500 text-red-400 bg-[rgba(255,0,0,0.06)]"
+                                        : "border-[var(--accent)] text-[var(--accent)] hover:bg-[rgba(0,229,255,0.08)] hover:shadow-[0_0_30px_rgba(0,229,255,0.15)]"
                                     } ${status === "sending" ? "opacity-60" : ""}`}
                             >
                                 {status === "idle" && "⟶ Send Message"}
